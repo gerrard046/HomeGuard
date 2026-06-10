@@ -18,8 +18,9 @@ import json
 
 import streamlit as st
 
-from homeguard import HomeGuardScanner, __version__
+from homeguard import HomeGuardScanner, __version__, discovery
 from homeguard.data import owasp_iot
+from homeguard.report_pdf import build_pdf_bytes
 
 # Pemetaan severity ke warna untuk badge tampilan.
 WARNA_SEVERITY = {
@@ -124,6 +125,17 @@ def main() -> None:
         gunakan_nmap = st.checkbox(
             "Gunakan nmap -sV (fallback ke socket)", value=False
         )
+        udp = st.checkbox("Probe UDP (SSDP/UPnP & mDNS)", value=False)
+        check_creds = st.checkbox(
+            "Uji kredensial bawaan (opt-in)", value=False,
+            help="Non-destruktif. Hanya untuk jaringan milik/diizinkan.",
+        )
+        if check_creds:
+            st.warning("Pastikan Anda berwenang menguji target ini.")
+        maks_host = st.number_input(
+            "Maks host dipindai", min_value=1, max_value=512, value=64,
+            help="Batas atas jumlah host untuk membatasi durasi pemindaian.",
+        )
         pindai = st.button("Mulai Pindai", type="primary")
 
     # --- Eksekusi pemindaian ---
@@ -134,16 +146,40 @@ def main() -> None:
             st.error("Format port tidak valid.")
             return
         scanner = HomeGuardScanner(
-            ports=ports, timeout=timeout, gunakan_nmap=gunakan_nmap
+            ports=ports, timeout=timeout, gunakan_nmap=gunakan_nmap,
+            udp=udp, check_creds=check_creds,
         )
-        with st.spinner("Memindai jaringan..."):
-            if mode == "Host tunggal":
+        if mode == "Host tunggal":
+            with st.spinner(f"Memindai {target}..."):
                 hasil = [scanner.scan_host(target)]
-                nama_target = target
-            else:
-                hasil = scanner.scan_subnet(target or None)
-                nama_target = target or "(deteksi otomatis)"
-            laporan = scanner.build_report(hasil, target=nama_target)
+            nama_target = target
+        else:
+            # Penemuan host dahulu, lalu pemindaian per host dengan
+            # progress bar agar UI responsif untuk subnet besar.
+            with st.spinner("Menemukan host hidup..."):
+                hosts = discovery.discover_hosts(
+                    subnet=target or None,
+                    timeout=min(timeout, 0.5),
+                )
+            hosts = hosts[: int(maks_host)]
+            nama_target = target or "(deteksi otomatis)"
+            hasil = []
+            if hosts:
+                bar = st.progress(0.0)
+                status = st.empty()
+                for i, h in enumerate(hosts, start=1):
+                    status.text(
+                        f"Memindai {h['ip']} ({i}/{len(hosts)})..."
+                    )
+                    hasil.append(
+                        scanner.scan_host(
+                            h["ip"], mac=h.get("mac"),
+                            vendor=h.get("vendor"),
+                        )
+                    )
+                    bar.progress(i / len(hosts))
+                status.text(f"Selesai memindai {len(hosts)} host.")
+        laporan = scanner.build_report(hasil, target=nama_target)
         st.session_state["laporan"] = laporan
 
     # --- Tampilkan hasil ---
@@ -158,11 +194,18 @@ def main() -> None:
             c2.metric("Host berisiko", ring["host_berisiko"])
             c3.metric("Skor tertinggi", ring["skor_tertinggi"])
 
-            st.download_button(
-                "⬇️ Unduh laporan JSON",
+            unduh1, unduh2 = st.columns(2)
+            unduh1.download_button(
+                "⬇️ Unduh JSON",
                 data=json.dumps(laporan, ensure_ascii=False, indent=2),
                 file_name="homeguard_laporan.json",
                 mime="application/json",
+            )
+            unduh2.download_button(
+                "⬇️ Unduh PDF",
+                data=build_pdf_bytes(laporan),
+                file_name="homeguard_laporan.pdf",
+                mime="application/pdf",
             )
 
             st.subheader("Host (diurut menurut risiko)")

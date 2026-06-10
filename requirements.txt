@@ -9,3 +9,7 @@ streamlit>=1.30
 
 # Kerangka pengujian (opsional, hanya untuk menjalankan tes).
 pytest>=7.0
+
+# Catatan: ekspor PDF memakai pustaka standar sehingga TIDAK butuh dependensi
+# tambahan. Pembuatan diagram pipeline paper (paper/diagram_pipeline.py)
+# memerlukan matplotlib (opsional, khusus pengembangan): pip install matplotlib

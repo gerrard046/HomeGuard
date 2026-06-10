@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import datetime
 
-from . import discovery, portscan, vulnmap
+from . import credcheck, discovery, portscan, vulnmap
 from .data import owasp_iot
 
 
@@ -40,11 +40,15 @@ class HomeGuardScanner:
         timeout: float = 1.0,
         gunakan_nmap: bool = False,
         max_workers: int = 100,
+        udp: bool = False,
+        check_creds: bool = False,
     ):
         self.ports = list(ports) if ports else list(portscan.PORT_DEFAULT)
         self.timeout = timeout
         self.gunakan_nmap = gunakan_nmap
         self.max_workers = max_workers
+        self.udp = udp
+        self.check_creds = check_creds
 
     # --- Pemindaian per host -------------------------------------------------
 
@@ -60,20 +64,49 @@ class HomeGuardScanner:
             timeout=self.timeout,
             gunakan_nmap=self.gunakan_nmap,
             max_workers=self.max_workers,
+            udp=self.udp,
         )
         penilaian = vulnmap.assess_host(terbuka)
+        findings = list(penilaian["findings"])
+
+        # Pemeriksaan kredensial bawaan (opt-in) menambah temuan KRITIS I1/I9.
+        if self.check_creds:
+            findings += credcheck.check_host_credentials(
+                ip, terbuka, timeout=max(self.timeout, 2.0)
+            )
+
+        agregat = self._agregasi(findings)
         if vendor is None:
             vendor = discovery.lookup_vendor(mac) if mac else "Unknown"
         return {
             "ip": ip,
             "mac": mac,
             "vendor": vendor,
-            "severity": penilaian["severity"],
-            "score": penilaian["score"],
-            "owasp": penilaian["owasp"],
+            "severity": agregat["severity"],
+            "score": agregat["score"],
+            "owasp": agregat["owasp"],
             "open_ports": terbuka,
-            "findings": penilaian["findings"],
+            "findings": findings,
         }
+
+    @staticmethod
+    def _agregasi(findings: list) -> dict:
+        """Hitung ulang severity/skor/OWASP host dari gabungan temuan.
+
+        Diperlukan ketika temuan dari modul lain (mis. kredensial bawaan)
+        ditambahkan ke hasil pemetaan port standar.
+        """
+        if not findings:
+            return {"severity": "AMAN", "score": 0, "owasp": []}
+        set_owasp = set()
+        for f in findings:
+            set_owasp.update(f["owasp"])
+        owasp = sorted(set_owasp, key=lambda c: int(c[1:]))
+        sev = vulnmap.severity_tertinggi(f["severity"] for f in findings)
+        skor = (vulnmap.SEVERITY_BASE_SCORE[sev]
+                + vulnmap.PENAMBAH_PER_TEMUAN * len(findings))
+        return {"severity": sev, "score": min(skor, vulnmap.SKOR_MAKSIMUM),
+                "owasp": owasp}
 
     # --- Pemindaian subnet ---------------------------------------------------
 

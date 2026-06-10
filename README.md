@@ -55,8 +55,10 @@ HomeGuard/
 ├── homeguard/
 │   ├── __init__.py             # ekspor HomeGuardScanner, __version__
 │   ├── discovery.py            # Modul 1: host discovery
-│   ├── portscan.py             # Modul 2 & 3: port scan + deteksi layanan
+│   ├── portscan.py             # Modul 2 & 3: port scan (TCP+UDP) + layanan
 │   ├── vulnmap.py              # Modul 4: pemetaan OWASP + skor risiko
+│   ├── credcheck.py            # Cek kredensial bawaan (opt-in, I1/I9)
+│   ├── report_pdf.py           # Ekspor laporan PDF (pustaka standar)
 │   ├── scanner.py              # orkestrator pipeline end-to-end
 │   └── data/
 │       ├── __init__.py
@@ -101,8 +103,14 @@ python cli.py --subnet 192.168.1.0/24
 # Pindai satu host dengan daftar port tertentu
 python cli.py --host 192.168.1.10 --ports 22,23,80,554
 
-# Gunakan nmap bila tersedia (otomatis fallback ke socket) + ekspor JSON
-python cli.py --subnet 192.168.1.0/24 --nmap --json laporan.json
+# Gunakan nmap bila tersedia (otomatis fallback ke socket) + ekspor JSON & PDF
+python cli.py --subnet 192.168.1.0/24 --nmap --json laporan.json --pdf laporan.pdf
+
+# Aktifkan probe UDP (SSDP/UPnP & mDNS)
+python cli.py --host 192.168.1.10 --udp
+
+# OPT-IN: uji kredensial bawaan (hanya jaringan milik/diizinkan)
+python cli.py --host 192.168.1.10 --check-creds
 
 # Nonaktifkan warna (mis. untuk berkas log)
 python cli.py --host 192.168.1.10 --no-color
@@ -112,7 +120,17 @@ python cli.py --owasp-ref
 ```
 
 Argumen: `--subnet`, `--host`, `--ports`, `--timeout`, `--nmap`,
-`--json FILE`, `--no-color`.
+`--json FILE`, `--pdf FILE`, `--udp`, `--check-creds`, `--no-color`.
+
+### Coba tanpa jaringan nyata (demo lokal)
+
+```bash
+python demo_lokal.py
+```
+
+Skrip ini menyalakan layanan IoT tiruan (Telnet, HTTP banner usang, RTSP)
+di `localhost` lalu memindainya — aman untuk mencoba aplikasi tanpa
+memindai jaringan apa pun.
 
 ### 2) Streamlit
 
@@ -185,33 +203,37 @@ kecil per temuan, dibatasi maksimum **100**. Host tanpa port terbuka dinilai
 
 ## Menjalankan Pengujian
 
-Terdapat **12 unit test** (`pytest`) yang seluruhnya harus **LULUS**:
+Terdapat **24 unit test** (`pytest`) yang seluruhnya harus **LULUS**:
 
 ```bash
 pip install pytest
 pytest -q
 ```
 
-- `tests/test_vulnmap.py` (6 test): Telnet KRITIS + I1/I2; HTTP I3/I7;
-  RTSP I2/I7; port tak dikenal → I2; banner usang → +I5 & severity naik;
-  host gabungan Telnet+HTTP+RTSP → KRITIS (I1/I2/I3/I7) & host tanpa port →
-  AMAN/skor 0.
-- `tests/test_discovery.py` (6 test): normalisasi MAC berbagai pemisah;
-  MAC invalid ditolak; lookup vendor (Raspberry Pi `B8:27:EB` vs Unknown);
-  parsing `ip neigh` & `arp -a` (baris tanpa MAC diabaikan); ekspansi CIDR
-  /30 & /32; deteksi IP privat.
+- `tests/test_vulnmap.py` (6): Telnet KRITIS + I1/I2; HTTP I3/I7; RTSP I2/I7;
+  port tak dikenal → I2; banner usang → +I5 & severity naik; host gabungan →
+  KRITIS & host tanpa port → AMAN/skor 0.
+- `tests/test_discovery.py` (6): normalisasi MAC; MAC invalid ditolak; lookup
+  vendor (Raspberry Pi vs Unknown); parsing `ip neigh` & `arp -a`; ekspansi
+  CIDR /30 & /32; deteksi IP privat.
+- `tests/test_portscan.py` (6): scan port terbuka/tertutup + banner;
+  `scan_host_socket`; parsing output grepable nmap; fallback nmap → socket;
+  probe UDP terbuka.
+- `tests/test_scanner.py` (6): agregasi severity/OWASP; pengurutan laporan;
+  integrasi banner usang → +I5; deteksi kredensial bawaan → I1/I9; PDF valid.
 
 ---
 
 ## Roadmap
 
-1. **GitHub Actions CI** untuk menjalankan `pytest` otomatis pada setiap
-   push/pull request.
+1. ✅ **GitHub Actions CI** untuk menjalankan `pytest` otomatis
+   (`.github/workflows/ci.yml`).
 2. **Korelasi versi → CVE (kategori I5)** melalui **NVD API**, memperkaya
    deteksi komponen usang dengan referensi CVE nyata.
-3. **Ekspor laporan PDF** (selain JSON) untuk pelaporan formal.
+3. ✅ **Ekspor laporan PDF** (selain JSON) — `homeguard/report_pdf.py`.
 4. **Database OUI lengkap IEEE** menggantikan seed kecil saat ini untuk
    identifikasi vendor yang akurat.
+5. **Pendalaman UDP** (CoAP, profil mDNS lengkap) dan deteksi tipe perangkat.
 
 ---
 

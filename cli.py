@@ -144,6 +144,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Ekspor laporan ke berkas JSON pada path FILE.",
     )
     parser.add_argument(
+        "--pdf",
+        metavar="FILE",
+        help="Ekspor laporan ke berkas PDF pada path FILE.",
+    )
+    parser.add_argument(
+        "--udp",
+        action="store_true",
+        help="Aktifkan probe UDP (SSDP/UPnP & mDNS) selain pemindaian TCP.",
+    )
+    parser.add_argument(
+        "--check-creds",
+        action="store_true",
+        help="OPT-IN: uji kredensial bawaan (Telnet/HTTP) secara "
+        "non-destruktif. Hanya untuk jaringan milik/diizinkan.",
+    )
+    parser.add_argument(
         "--no-color",
         action="store_true",
         help="Nonaktifkan pewarnaan keluaran terminal.",
@@ -171,8 +187,16 @@ def main(argv=None) -> int:
 
     ports = parse_ports(args.ports) if args.ports else None
     scanner = HomeGuardScanner(
-        ports=ports, timeout=args.timeout, gunakan_nmap=args.nmap
+        ports=ports,
+        timeout=args.timeout,
+        gunakan_nmap=args.nmap,
+        udp=args.udp,
+        check_creds=args.check_creds,
     )
+    if args.check_creds:
+        print(_w(
+            "Mode --check-creds aktif: pastikan Anda berwenang menguji target.",
+            "SEDANG", warna))
 
     print(_w("Memindai... (hanya untuk jaringan milik/diizinkan)", "dim", warna))
     if args.host:
@@ -189,6 +213,12 @@ def main(argv=None) -> int:
         with open(args.json, "w", encoding="utf-8") as fh:
             json.dump(laporan, fh, ensure_ascii=False, indent=2)
         print(_w(f"\nLaporan JSON disimpan ke: {args.json}", "AMAN", warna))
+
+    if args.pdf:
+        from homeguard.report_pdf import build_pdf
+
+        build_pdf(laporan, args.pdf)
+        print(_w(f"Laporan PDF disimpan ke: {args.pdf}", "AMAN", warna))
 
     return 0
 
