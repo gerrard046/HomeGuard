@@ -1,0 +1,106 @@
+% =====================================================================
+%  HomeGuard - Justifikasi keberadaan aplikasi & diferensiasi terhadap
+%  alat sejenis yang sudah ada (menjawab pertanyaan penguji:
+%  "sudah banyak aplikasi serupa").
+%
+%  Saran penempatan: sebagai sub-bab tambahan pada Bab II (Tinjauan
+%  Pustaka), mis. "II.F Diferensiasi terhadap Alat yang Tersedia",
+%  ATAU diintegrasikan ke akhir Bab II.E (Penelitian Terdahulu) dan
+%  diperkuat di Bab I.A (Latar Belakang).
+% =====================================================================
+
+\subsection{Diferensiasi terhadap Alat yang Sudah Tersedia}
+
+Patut diakui bahwa telah tersedia beragam perangkat pemindai jaringan,
+baik komersial maupun \textit{open-source}. Namun, alat-alat tersebut
+secara umum berada pada salah satu dari dua kutub yang keduanya tidak
+sepenuhnya menjawab kebutuhan pengguna rumahan non-teknis dalam konteks
+penilaian kerentanan IoT yang terstandarisasi.
+
+Pada kutub \emph{perkakas profesional}, Nmap~[13], Nessus, dan OpenVAS
+merupakan pemindai yang sangat kuat namun ditujukan bagi praktisi
+keamanan. Perkakas ini memiliki kurva belajar yang curam, keluarannya
+bersifat teknis (daftar port/layanan mentah), berorientasi umum
+(bukan spesifik IoT rumah), serta sebagian berlisensi atau memerlukan
+infrastruktur dan konfigurasi yang tidak praktis bagi pengguna awam.
+Yang terpenting, perkakas ini \emph{tidak} memetakan temuan ke taksonomi
+kerentanan khusus IoT seperti OWASP IoT Top 10.
+
+Pada kutub \emph{aplikasi konsumen}, perkakas seperti Fing dan
+Bitdefender Home Scanner mudah digunakan, tetapi umumnya bersifat
+\textit{closed-source} (basis aturannya tidak dapat diaudit), berbasis
+\textit{cloud} sehingga metadata jaringan rumah dikirim ke server pihak
+ketiga (menimbulkan persoalan privasi dan kedaulatan data), serta
+menyajikan hasil sebagai label keamanan umum tanpa pemetaan eksplisit ke
+kerangka akademik yang dapat dipertanggungjawabkan.
+
+Dengan demikian, kontribusi HomeGuard \emph{bukan} terletak pada penemuan
+teknik pemindaian baru --- HomeGuard memang memakai teknik standar
+(\textit{TCP connect scan}, \textit{banner grabbing}, ARP/OUI
+\textit{lookup}) --- melainkan pada \textbf{integrasi dan pemosisian}
+yang mengisi celah spesifik berikut:
+
+\begin{enumerate}
+    \item \textbf{Pemetaan eksplisit ke OWASP IoT Top 10 (2018).} Setiap
+    temuan diklasifikasikan ke kategori risiko IoT yang terstandarisasi
+    dan disertai skor risiko serta rekomendasi mitigasi yang
+    \textit{actionable}, bukan sekadar daftar port mentah.
+
+    \item \textbf{Transparan dan dapat diaudit.} Sebagai \textit{open-source}
+    dengan basis aturan terbuka, HomeGuard memungkinkan verifikasi
+    ilmiah dan reproduktibilitas --- prasyarat bagi sebuah instrumen
+    penelitian, yang tidak dimiliki perkakas \textit{closed-source}.
+
+    \item \textbf{Privasi dan operasi lokal sepenuhnya.} Pemindaian dan
+    analisis berjalan secara lokal tanpa mengirim data ke \textit{cloud},
+    selaras dengan prinsip \textit{Zero Trust}~[19] dan menjaga kedaulatan
+    data rumah tangga.
+
+    \item \textbf{Ringan dan portabel.} Inti pemindaian hanya memakai
+    pustaka standar Python tanpa dependensi wajib dan tanpa hak akses
+    \textit{root}, sehingga dapat dijalankan oleh pengguna rumahan pada
+    beragam lingkungan dengan mudah.
+
+    \item \textbf{Berorientasi edukasi dan konteks lokal.} Antarmuka,
+    catatan, dan rekomendasi disajikan dalam Bahasa Indonesia untuk
+    meningkatkan kesadaran keamanan pengguna non-teknis, sekaligus
+    memungkinkan studi empiris lanskap kerentanan IoT rumah tangga di
+    Indonesia.
+\end{enumerate}
+
+Posisi pembeda ini diringkas pada Tabel~\ref{tab:diferensiasi}, yang
+membandingkan HomeGuard dengan representasi alat pada kedua kutub di atas
+berdasarkan kriteria yang relevan bagi pengguna rumahan.
+
+\begin{table}[ht]
+    \centering
+    \caption{Diferensiasi HomeGuard terhadap Alat Sejenis}
+    \label{tab:diferensiasi}
+    \footnotesize
+    \begin{tabular}{|p{2.2cm}|c|c|c|c|c|}
+        \hline
+        \textbf{Kriteria} & \textbf{Nmap} & \textbf{Nessus/} &
+        \textbf{Fing} & \textbf{Bitdef.} & \textbf{Home-} \\
+         & & \textbf{OpenVAS} & & \textbf{Scan} & \textbf{Guard} \\
+        \hline
+        \textit{Open-source} & Ya & Sebagian & Tidak & Tidak & \textbf{Ya} \\
+        \hline
+        Target pengguna awam & Tidak & Tidak & Ya & Ya & \textbf{Ya} \\
+        \hline
+        Pemetaan OWASP IoT & Tidak & Tidak & Tidak & Tidak & \textbf{Ya} \\
+        \hline
+        Lokal / tanpa cloud & Ya & Ya & Tidak & Tidak & \textbf{Ya} \\
+        \hline
+        Ringan / tanpa root & Tidak & Tidak & Ya & Ya & \textbf{Ya} \\
+        \hline
+        Edukasi (Bhs. lokal) & Tidak & Tidak & Tidak & Tidak & \textbf{Ya} \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Singkatnya, tidak ada satu pun perkakas terdahulu yang secara simultan
+bersifat \textit{open-source}, ramah pengguna awam, beroperasi lokal demi
+privasi, ringan, sekaligus memetakan temuan ke OWASP IoT Top 10 dengan
+rekomendasi edukatif. Kombinasi atribut inilah --- bukan teknik
+pemindaiannya semata --- yang menjadi kebaruan dan justifikasi keberadaan
+HomeGuard.
