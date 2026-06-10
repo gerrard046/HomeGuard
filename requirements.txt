@@ -1,0 +1,11 @@
+# Inti pemindaian HomeGuard HANYA memakai pustaka standar Python (>= 3.9),
+# tanpa dependensi wajib. Paket di bawah hanya diperlukan untuk UI Streamlit
+# dan pengujian.
+#
+# Pasang dengan: pip install -r requirements.txt
+
+# Antarmuka pengguna berbasis web (opsional, hanya untuk app.py).
+streamlit>=1.30
+
+# Kerangka pengujian (opsional, hanya untuk menjalankan tes).
+pytest>=7.0

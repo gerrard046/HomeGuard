@@ -1,0 +1,36 @@
+# Berkas bytecode & cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Lingkungan virtual
+.venv/
+venv/
+env/
+ENV/
+
+# Cache alat
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Berkas konfigurasi/cache Streamlit lokal
+.streamlit/secrets.toml
+
+# Laporan hasil pemindaian (jangan commit data jaringan nyata)
+*.json
+!**/data/*.json
+laporan*.json
+homeguard_laporan.json
+
+# Berkas editor/OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
