@@ -46,6 +46,14 @@ IOT_PORTS = {
         "kata sandi bawaan/hardcoded pada perangkat IoT.",
         "recommendation": "Nonaktifkan Telnet sepenuhnya dan gunakan SSH.",
     },
+    2323: {
+        "service": "telnet-alt",
+        "owasp": ["I1", "I2", "I7"],
+        "severity": SEVERITY_KRITIS,
+        "note": "Telnet pada port alternatif 2323 dipindai aktif oleh botnet "
+        "Mirai dan variannya; kredensial polos/bawaan sangat rentan.",
+        "recommendation": "Nonaktifkan Telnet sepenuhnya dan gunakan SSH.",
+    },
     25: {
         "service": "smtp",
         "owasp": ["I2", "I7"],
@@ -91,6 +99,15 @@ IOT_PORTS = {
         "severity": SEVERITY_TINGGI,
         "note": "Broker MQTT tanpa autentikasi/TLS membuka kontrol perangkat.",
         "recommendation": "Aktifkan autentikasi MQTT dan TLS (port 8883).",
+    },
+    1900: {
+        "service": "ssdp/upnp",
+        "owasp": ["I2"],
+        "severity": SEVERITY_SEDANG,
+        "note": "SSDP/UPnP (port 1900) mengindikasikan smart device dan kerap "
+        "mengekspos deskripsi layanan tanpa autentikasi.",
+        "recommendation": "Nonaktifkan UPnP/SSDP bila tidak diperlukan, batasi "
+        "ke jaringan lokal.",
     },
     5000: {
         "service": "upnp/http-alt",
