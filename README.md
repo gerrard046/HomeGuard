@@ -1,4 +1,23 @@
-# 🛡️ HomeGuard
+<h1 align="center">🛡️ HomeGuard</h1>
+
+<p align="center">
+  <em>Pemindai keamanan jaringan rumah untuk identifikasi kerentanan perangkat IoT,<br>
+  dipetakan ke OWASP IoT Top 10 (2018) dengan skor risiko 0–100.</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/gerrard046/HomeGuard/actions/workflows/ci.yml">
+    <img alt="Status CI" src="https://github.com/gerrard046/HomeGuard/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white">
+  <img alt="Tes" src="https://img.shields.io/badge/tes-24%20lulus-brightgreen?logo=pytest&logoColor=white">
+  <img alt="Dependensi inti" src="https://img.shields.io/badge/dependensi%20inti-nol%20(pustaka%20standar)-success">
+  <img alt="OWASP" src="https://img.shields.io/badge/OWASP-IoT%20Top%2010%20(2018)-f7931e?logo=owasp&logoColor=white">
+  <img alt="Status" src="https://img.shields.io/badge/status-prototipe-yellow">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey">
+  <img alt="Lisensi" src="https://img.shields.io/badge/lisensi-edukasi-blue">
+</p>
+
+---
 
 **Pemindai keamanan jaringan rumah untuk mengidentifikasi kerentanan perangkat
 IoT pada jaringan Wi-Fi domestik**, dengan pemetaan ke kerangka **OWASP IoT
