@@ -15,6 +15,44 @@ Proyek ini merupakan prototipe implementasi paper tugas kuliah
 
 ---
 
+## Mengapa HomeGuard? (Motivasi & Diferensiasi)
+
+> *"Bukankah sudah banyak aplikasi serupa di luar sana?"*
+
+Memang ada banyak pemindai jaringan, tetapi umumnya berada di salah satu
+dari dua kutub yang **keduanya tidak menjawab** kebutuhan pengguna rumahan
+non-teknis untuk penilaian kerentanan IoT yang terstandarisasi:
+
+- **Perkakas profesional** (Nmap, Nessus, OpenVAS): sangat kuat tetapi
+  berorientasi pakar, keluarannya teknis/mentah, berorientasi umum, dan
+  **tidak memetakan temuan ke OWASP IoT Top 10**.
+- **Aplikasi konsumen** (Fing, Bitdefender Home Scanner): mudah dipakai
+  tetapi **closed-source** (aturan tak bisa diaudit), **berbasis cloud**
+  (metadata jaringan dikirim ke server pihak ketiga), dan hanya memberi
+  label keamanan umum tanpa kerangka akademik.
+
+Kontribusi HomeGuard **bukan teknik pemindaian baru** (ia memakai teknik
+standar), melainkan **integrasi + pemosisian** yang mengisi celah spesifik:
+
+| Kriteria | Nmap | Nessus/OpenVAS | Fing | Bitdefender | **HomeGuard** |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Open-source | ✓ | sebagian | ✗ | ✗ | **✓** |
+| Untuk pengguna awam | ✗ | ✗ | ✓ | ✓ | **✓** |
+| Pemetaan OWASP IoT Top 10 | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Lokal / tanpa cloud (privasi) | ✓ | ✓ | ✗ | ✗ | **✓** |
+| Ringan / tanpa root | ✗ | ✗ | ✓ | ✓ | **✓** |
+| Edukasi (Bahasa Indonesia) | ✗ | ✗ | ✗ | ✗ | **✓** |
+
+**Tidak ada satu pun** perkakas terdahulu yang sekaligus *open-source*,
+ramah awam, lokal demi privasi, ringan, **dan** memetakan temuan ke OWASP
+IoT Top 10 dengan rekomendasi edukatif. Kombinasi atribut inilah —
+bukan teknik pemindaiannya — yang menjadi kebaruan dan justifikasi
+keberadaan HomeGuard. Sebagai alat *open-source* yang transparan dan
+reproducible, HomeGuard juga berfungsi sebagai **instrumen penelitian**
+untuk studi empiris lanskap kerentanan IoT rumah tangga di Indonesia.
+
+---
+
 ## Arsitektur
 
 HomeGuard menjalankan **pipeline 4 modul berurutan** sesuai paper:
