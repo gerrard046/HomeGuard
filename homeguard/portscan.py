@@ -208,24 +208,123 @@ def scan_host_nmap(
     return _parse_nmap_grepable(keluaran)
 
 
+# --- Pemindaian UDP (SSDP/UPnP & mDNS) ----------------------------------------
+
+# Port UDP yang dipindai beserta payload probe-nya.
+UDP_PORT_DEFAULT = (1900, 5353)
+
+
+def _probe_ssdp(ip: str) -> bytes:
+    """Bangun paket M-SEARCH SSDP untuk penemuan UPnP secara unicast."""
+    return (
+        "M-SEARCH * HTTP/1.1\r\n"
+        f"HOST: {ip}:1900\r\n"
+        'MAN: "ssdp:discover"\r\n'
+        "MX: 1\r\n"
+        "ST: ssdp:all\r\n\r\n"
+    ).encode("ascii")
+
+
+def _probe_mdns() -> bytes:
+    """Bangun kueri mDNS PTR untuk '_services._dns-sd._udp.local'."""
+    # Header DNS: ID=0, flags=0 (standard query), QDCOUNT=1, lainnya 0.
+    header = b"\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00"
+    nama = [b"_services", b"_dns-sd", b"_udp", b"local"]
+    qname = b"".join(bytes([len(n)]) + n for n in nama) + b"\x00"
+    # QTYPE=PTR(12), QCLASS=IN(1).
+    return header + qname + b"\x00\x0c\x00\x01"
+
+
+def scan_udp_port(ip: str, port: int, timeout: float = 1.0) -> dict:
+    """Probe satu port UDP dan deteksi layanan via respons.
+
+    UDP bersifat connectionless; sebuah port hanya dianggap TERBUKA bila
+    perangkat mengirim respons terhadap probe (positive detection). Tidak
+    adanya respons tidak dapat membedakan port tertutup atau terfilter,
+    sehingga dilaporkan sebagai tidak terbuka.
+    """
+    hasil = {
+        "port": port,
+        "open": False,
+        "service": "",
+        "version": "",
+        "banner": "",
+        "proto": "udp",
+    }
+    if port == 1900:
+        payload = _probe_ssdp(ip)
+    elif port == 5353:
+        payload = _probe_mdns()
+    else:
+        payload = b"\x00"
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(timeout)
+    try:
+        sock.sendto(payload, (ip, port))
+        data, _ = sock.recvfrom(2048)
+    except OSError:
+        return hasil
+    finally:
+        sock.close()
+
+    hasil["open"] = True
+    profil = IOT_PORTS.get(port)
+    hasil["service"] = profil["service"] if profil else ""
+    if port == 1900:
+        # Ekstrak header SERVER dari respons SSDP untuk banner.
+        teks = data.decode("latin-1", "ignore")
+        for baris in teks.splitlines():
+            if baris.lower().startswith("server:"):
+                hasil["banner"] = baris.split(":", 1)[1].strip()
+                break
+        hasil["version"] = _deteksi_versi(hasil["banner"])
+    else:
+        hasil["banner"] = f"respons mDNS {len(data)} byte"
+    return hasil
+
+
+def scan_host_udp(
+    ip: str,
+    ports=UDP_PORT_DEFAULT,
+    timeout: float = 1.0,
+) -> list:
+    """Probe sekumpulan port UDP pada ``ip`` dan kembalikan yang terbuka."""
+    terbuka = []
+    for port in ports:
+        hasil = scan_udp_port(ip, port, timeout=timeout)
+        if hasil["open"]:
+            terbuka.append(hasil)
+    terbuka.sort(key=lambda r: r["port"])
+    return terbuka
+
+
 def scan_host(
     ip: str,
     ports=PORT_DEFAULT,
     timeout: float = 1.0,
     gunakan_nmap: bool = False,
     max_workers: int = 100,
+    udp: bool = False,
+    udp_ports=UDP_PORT_DEFAULT,
 ) -> list:
     """Pindai ``ip`` memakai nmap (bila diminta & tersedia) atau socket murni.
 
     Bila ``gunakan_nmap=True`` namun nmap gagal/tidak ada, otomatis fallback ke
-    pemindai socket murni. Mengembalikan daftar dict port terbuka.
+    pemindai socket murni. Bila ``udp=True``, hasil TCP digabung dengan hasil
+    probe UDP (SSDP/UPnP & mDNS). Mengembalikan daftar dict port terbuka.
     """
+    terbuka = None
     if gunakan_nmap:
         try:
-            return scan_host_nmap(ip, ports=ports, timeout=timeout)
+            terbuka = scan_host_nmap(ip, ports=ports, timeout=timeout)
         except RuntimeError:
             # Fallback otomatis ke socket murni.
-            pass
-    return scan_host_socket(
-        ip, ports=ports, timeout=timeout, max_workers=max_workers
-    )
+            terbuka = None
+    if terbuka is None:
+        terbuka = scan_host_socket(
+            ip, ports=ports, timeout=timeout, max_workers=max_workers
+        )
+    if udp:
+        terbuka = terbuka + scan_host_udp(ip, ports=udp_ports, timeout=timeout)
+    return terbuka

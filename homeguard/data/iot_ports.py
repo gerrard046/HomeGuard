@@ -109,6 +109,15 @@ IOT_PORTS = {
         "recommendation": "Nonaktifkan UPnP/SSDP bila tidak diperlukan, batasi "
         "ke jaringan lokal.",
     },
+    5353: {
+        "service": "mdns",
+        "owasp": ["I2", "I6"],
+        "severity": SEVERITY_RENDAH,
+        "note": "mDNS (port 5353) mengumumkan layanan & nama perangkat di "
+        "jaringan lokal, berpotensi membocorkan informasi perangkat.",
+        "recommendation": "Batasi mDNS ke segmen tepercaya bila tidak "
+        "diperlukan untuk penemuan layanan.",
+    },
     5000: {
         "service": "upnp/http-alt",
         "owasp": ["I2", "I3"],
