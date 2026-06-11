@@ -14,7 +14,7 @@
   <img alt="OWASP" src="https://img.shields.io/badge/OWASP-IoT%20Top%2010%20(2018)-f7931e?logo=owasp&logoColor=white">
   <img alt="Status" src="https://img.shields.io/badge/status-prototipe-yellow">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey">
-  <img alt="Lisensi" src="https://img.shields.io/badge/lisensi-edukasi-blue">
+  <a href="LICENSE"><img alt="Lisensi" src="https://img.shields.io/badge/lisensi-MIT-blue"></a>
 </p>
 
 ---
@@ -624,6 +624,7 @@ setiap *push* / *pull request*.
 
 ## Lisensi & Tanggung Jawab
 
-Prototipe edukasi. Pengguna bertanggung jawab penuh memastikan setiap
+Dirilis di bawah **Lisensi MIT** — lihat berkas [`LICENSE`](LICENSE).
+Prototipe edukasi: pengguna bertanggung jawab penuh memastikan setiap
 pemindaian dilakukan **hanya pada jaringan yang sah dimiliki atau diizinkan**.
 Pengembang tidak bertanggung jawab atas penyalahgunaan.
