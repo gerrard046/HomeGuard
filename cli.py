@@ -82,6 +82,10 @@ def cetak_laporan(laporan: dict, warna: bool) -> None:
         print(_w(f"\n{garis}", "dim", warna))
         label = _w(f"[{sev}] skor {h['score']}", sev, warna)
         print(f"{label}  {h['ip']}  ({h.get('vendor') or 'Unknown'})")
+        if h.get("device_type"):
+            kk = h.get("device_confidence", "")
+            print(f"  Tipe  : {h['device_type']}"
+                  + (f" (keyakinan {kk})" if kk else ""))
         if h.get("mac"):
             print(f"  MAC   : {h['mac']}")
         if h["owasp"]:

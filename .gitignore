@@ -29,6 +29,9 @@ htmlcov/
 laporan*.json
 homeguard_laporan.json
 
+# Database OUI IEEE penuh (dihasilkan oleh tools/update_oui.py, ~3 MB)
+homeguard/data/oui_full.txt
+
 # Berkas editor/OS
 .vscode/
 .idea/
