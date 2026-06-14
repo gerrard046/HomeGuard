@@ -287,6 +287,20 @@ bukan brute-force):
 Temuan kredensial bawaan dipetakan ke **I1 + I9**, severity **KRITIS** — persis
 vektor utama botnet **Mirai**.
 
+### Fitur: Cek TLS & Header Keamanan (`tlscheck.py`)
+
+Diaktifkan dengan `--tls` (atau centang di Streamlit). Memperdalam analisis
+layanan web/terenkripsi secara non-intrusif (pustaka standar `ssl`):
+
+- **TLS/sertifikat** — protokol usang (SSLv3/TLS 1.0/1.1), cipher lemah
+  (RC4/3DES/NULL/EXPORT), sertifikat **kedaluwarsa**, **akan kedaluwarsa**
+  (<30 hari), atau **self-signed**. Dipetakan ke **I7**.
+- **Header keamanan HTTP** — mendeteksi ketiadaan `Strict-Transport-Security`
+  (HSTS), `Content-Security-Policy`, `X-Frame-Options`,
+  `X-Content-Type-Options`. Dipetakan ke **I3**.
+
+Dijalankan pada port TLS (443/8443) dan HTTP (80/8080/5000/9000) yang terbuka.
+
 ### Fitur: Klasifikasi Tipe Perangkat (`classify.py`)
 
 Menebak **jenis perangkat** (Kamera IP/CCTV, Router/Gateway, Printer, NAS,
@@ -401,6 +415,7 @@ HomeGuard/
 │   ├── portscan.py             # Modul 2 & 3: port scan (TCP+UDP) + layanan
 │   ├── vulnmap.py              # Modul 4: pemetaan OWASP + skor risiko
 │   ├── credcheck.py            # Cek kredensial bawaan (opt-in, I1/I9)
+│   ├── tlscheck.py             # Cek TLS/sertifikat & header keamanan (I7/I3)
 │   ├── classify.py             # Klasifikasi tipe perangkat (kamera/router/...)
 │   ├── report_pdf.py           # Ekspor laporan PDF (pustaka standar)
 │   ├── scanner.py              # orkestrator pipeline end-to-end
@@ -469,6 +484,7 @@ python cli.py --owasp-ref                        # tampilkan referensi OWASP
 | `--nmap` | gunakan `nmap -sV` bila ada (fallback ke socket) |
 | `--udp` | aktifkan probe UDP (SSDP/UPnP & mDNS) |
 | `--check-creds` | OPT-IN: uji kredensial bawaan (non-destruktif) |
+| `--tls` | periksa TLS/sertifikat & header keamanan HTTP (I7/I3) |
 | `--json FILE` | ekspor laporan ke JSON |
 | `--pdf FILE` | ekspor laporan ke PDF |
 | `--no-color` | nonaktifkan pewarnaan terminal |
@@ -607,7 +623,7 @@ vulnmap.assess_host([{"port": 23}, {"port": 80}])    # ringkasan host
 
 ## Pengujian
 
-Terdapat **30 unit test** (`pytest`) yang seluruhnya harus **LULUS**:
+Terdapat **36 unit test** (`pytest`) yang seluruhnya harus **LULUS**:
 
 ```bash
 pip install pytest
@@ -621,6 +637,7 @@ pytest -q
 | `tests/test_portscan.py` (6) | scan port terbuka/tertutup + banner; `scan_host_socket`; parsing grepable nmap; fallback nmap→socket; probe UDP terbuka |
 | `tests/test_scanner.py` (6) | agregasi severity/OWASP; pengurutan laporan; integrasi banner usang→+I5; deteksi kredensial bawaan→I1/I9; validitas PDF |
 | `tests/test_classify.py` (6) | klasifikasi kamera/printer/router; keyakinan tinggi (layanan+vendor); host kosong→tidak diketahui; lookup OUI (seed/penuh) |
+| `tests/test_tlscheck.py` (6) | protokol/cipher TLS lemah→I7; header keamanan hilang→I3; header lengkap→tanpa temuan; integrasi cek header |
 
 CI (GitHub Actions) menjalankan `pytest` otomatis pada Python 3.9–3.12 di
 setiap *push* / *pull request*.

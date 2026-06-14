@@ -46,6 +46,7 @@ OUI (seed) + opsi database IEEE penuh.
 | 8 | 14 Jun | Klasifikasi tipe perangkat + database OUI IEEE | ✅ |
 | 9 | 14 Jun | Penyusunan paper LaTeX utuh (Bab I–VI) | ✅ |
 | 10 | 14 Jun | Paket Overleaf siap-pakai (ZIP + versi satu berkas) | ✅ |
+| 11 | 14 Jun | Cek keamanan TLS/sertifikat & header keamanan HTTP | ✅ |
 
 ---
 
@@ -142,6 +143,17 @@ langsung diunggah dan di-compile di Overleaf tanpa konfigurasi manual.
 
 > 💬 **Paparan ke dosen:** "Papernya sudah dalam bentuk yang siap di-compile —
 > tinggal unggah ke Overleaf dan klik compile, langsung jadi PDF utuh."
+
+### Milestone 11 — Cek TLS & Header Keamanan (14 Jun)
+**Apa:** Modul `tlscheck.py` memperdalam analisis layanan terenkripsi/web:
+mendeteksi protokol TLS usang (TLS 1.0/1.1), cipher lemah (RC4/3DES),
+sertifikat kedaluwarsa/self-signed (→ OWASP I7), serta ketiadaan header
+keamanan HTTP seperti HSTS dan CSP (→ I3). Tetap memakai pustaka standar.
+
+> 💬 **Paparan ke dosen:** "Aplikasi kini tidak hanya melihat port terbuka,
+> tapi juga menilai kualitas enkripsinya — misalnya mendeteksi sertifikat
+> kedaluwarsa atau protokol TLS lama yang rentan disadap. Ini memperkuat
+> cakupan kategori I7 (transfer data tidak aman) pada OWASP IoT Top 10."
 
 ---
 

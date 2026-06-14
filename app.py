@@ -131,6 +131,9 @@ def main() -> None:
             "Gunakan nmap -sV (fallback ke socket)", value=False
         )
         udp = st.checkbox("Probe UDP (SSDP/UPnP & mDNS)", value=False)
+        tls_check = st.checkbox(
+            "Periksa TLS & header keamanan HTTP", value=False
+        )
         check_creds = st.checkbox(
             "Uji kredensial bawaan (opt-in)", value=False,
             help="Non-destruktif. Hanya untuk jaringan milik/diizinkan.",
@@ -152,7 +155,7 @@ def main() -> None:
             return
         scanner = HomeGuardScanner(
             ports=ports, timeout=timeout, gunakan_nmap=gunakan_nmap,
-            udp=udp, check_creds=check_creds,
+            udp=udp, check_creds=check_creds, tls_check=tls_check,
         )
         if mode == "Host tunggal":
             with st.spinner(f"Memindai {target}..."):
