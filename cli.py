@@ -164,6 +164,12 @@ def build_parser() -> argparse.ArgumentParser:
         "non-destruktif. Hanya untuk jaringan milik/diizinkan.",
     )
     parser.add_argument(
+        "--tls",
+        action="store_true",
+        help="Periksa keamanan TLS (sertifikat/protokol/cipher) & header "
+        "keamanan HTTP.",
+    )
+    parser.add_argument(
         "--no-color",
         action="store_true",
         help="Nonaktifkan pewarnaan keluaran terminal.",
@@ -196,6 +202,7 @@ def main(argv=None) -> int:
         gunakan_nmap=args.nmap,
         udp=args.udp,
         check_creds=args.check_creds,
+        tls_check=args.tls,
     )
     if args.check_creds:
         print(_w(

@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import datetime
 
-from . import classify, credcheck, discovery, portscan, vulnmap
+from . import classify, credcheck, discovery, portscan, tlscheck, vulnmap
 from .data import owasp_iot
 
 
@@ -42,6 +42,7 @@ class HomeGuardScanner:
         max_workers: int = 100,
         udp: bool = False,
         check_creds: bool = False,
+        tls_check: bool = False,
     ):
         self.ports = list(ports) if ports else list(portscan.PORT_DEFAULT)
         self.timeout = timeout
@@ -49,6 +50,7 @@ class HomeGuardScanner:
         self.max_workers = max_workers
         self.udp = udp
         self.check_creds = check_creds
+        self.tls_check = tls_check
 
     # --- Pemindaian per host -------------------------------------------------
 
@@ -73,6 +75,12 @@ class HomeGuardScanner:
         if self.check_creds:
             findings += credcheck.check_host_credentials(
                 ip, terbuka, timeout=max(self.timeout, 2.0)
+            )
+
+        # Pemeriksaan TLS & header keamanan (opt-in) menambah temuan I7/I3.
+        if self.tls_check:
+            findings += tlscheck.check_host_tls(
+                ip, terbuka, timeout=max(self.timeout, 3.0)
             )
 
         agregat = self._agregasi(findings)
