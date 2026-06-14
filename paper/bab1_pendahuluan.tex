@@ -1,0 +1,132 @@
+% =====================================================================
+%  Bab I — Pendahuluan (rekonstruksi dari naskah PDF).
+%  Diperiksa ulang oleh penulis dianjurkan (transkripsi dari PDF).
+% =====================================================================
+
+\section{Pendahuluan}
+
+\subsection{Latar Belakang}
+Perkembangan teknologi Internet of Things (IoT) telah mentransformasi
+paradigma kehidupan rumah tangga modern secara fundamental. Atzori
+\textit{et al.}~\cite{b5} mendefinisikan IoT sebagai sebuah paradigma di mana
+objek-objek fisik dilengkapi dengan kemampuan komputasi, konektivitas
+jaringan, dan kapasitas pertukaran data, sehingga memungkinkan interaksi dan
+kolaborasi antarobjek tanpa intervensi manusia secara langsung. Menurut
+laporan International Telecommunication Union (ITU)~\cite{b7}, jumlah perangkat
+IoT yang terhubung secara global telah melampaui 15 miliar unit pada tahun
+2024, dengan proyeksi mencapai 25 miliar unit pada tahun 2030. Pertumbuhan ini
+didorong oleh meningkatnya adopsi ekosistem smart home yang mencakup perangkat
+seperti smart TV, kamera pengintai berbasis IP (CCTV), smart speaker, smart
+plug, smart lock, dan sensor lingkungan yang kesemuanya terhubung melalui
+jaringan Wi-Fi domestik.
+
+Al-Fuqaha \textit{et al.}~\cite{b6} dalam survei komprehensifnya
+mengidentifikasi bahwa ekosistem IoT bergantung pada beragam protokol
+komunikasi seperti MQTT (Message Queuing Telemetry Transport), CoAP
+(Constrained Application Protocol), Zigbee, Z-Wave, dan Bluetooth Low Energy
+(BLE), yang masing-masing memiliki karakteristik keamanan yang berbeda-beda.
+Keragaman protokol ini, meskipun memberikan fleksibilitas dalam implementasi,
+menciptakan kompleksitas tersendiri dalam pengelolaan keamanan jaringan rumah
+tangga.
+
+Seiring dengan meningkatnya adopsi perangkat IoT di lingkungan domestik,
+ancaman keamanan siber terhadap jaringan rumah tangga turut mengalami eskalasi
+yang signifikan. Salah satu insiden keamanan IoT paling menonjol dalam sejarah
+adalah serangan Mirai Botnet pada tahun 2016. Antonakakis
+\textit{et al.}~\cite{b1} mengungkapkan bahwa Mirai berhasil menginfeksi lebih
+dari 600.000 perangkat IoT --- termasuk kamera IP, router, dan Digital Video
+Recorder (DVR) --- dengan mengeksploitasi default credentials yang tidak diubah
+oleh penggunanya. Perangkat-perangkat yang terinfeksi tersebut kemudian
+digunakan untuk melancarkan serangan Distributed Denial of Service (DDoS) masif
+yang melumpuhkan layanan internet berskala besar seperti Dyn DNS, Twitter,
+Netflix, dan Reddit. Kolias \textit{et al.}~\cite{b10} menegaskan bahwa insiden
+Mirai menjadi titik balik yang mengekspos kerentanan fundamental pada ekosistem
+IoT, khususnya terkait penggunaan kata sandi bawaan pabrik (factory default
+passwords) dan layanan jaringan yang tidak diamankan.
+
+Neshenko \textit{et al.}~\cite{b8} dalam survei ekstensif mengidentifikasi
+bahwa kerentanan pada perangkat IoT dapat dikategorikan ke dalam empat lapisan
+utama: lapisan perangkat, lapisan jaringan, lapisan cloud, dan lapisan
+kecerdasan buatan. Temuan empiris mereka menunjukkan bahwa sebagian besar
+eksploitasi IoT berskala internet menargetkan kerentanan pada lapisan jaringan,
+seperti port terbuka yang tidak diperlukan, protokol komunikasi yang tidak
+terenkripsi, dan mekanisme autentikasi yang lemah.
+
+Di sisi lain, penelitian Alrawi \textit{et al.}~\cite{b2} menyoroti kesenjangan
+kritis antara kompleksitas ancaman keamanan IoT dan kapabilitas teknis pengguna
+rumahan. Evaluasi sistematis mereka mengungkapkan bahwa mayoritas pengguna
+tidak memiliki pengetahuan, peralatan, maupun kesadaran yang memadai untuk
+mengidentifikasi dan memitigasi kerentanan pada perangkat IoT di jaringan rumah
+mereka. Temuan ini diperkuat oleh laporan Bitdefender~\cite{b3} yang mencatat
+bahwa rata-rata rumah tangga yang terkoneksi memiliki lebih dari 20 perangkat
+IoT, namun kurang dari 15\% pengguna yang pernah melakukan pemeriksaan keamanan
+terhadap jaringan rumahnya.
+
+Kesenjangan ini menimbulkan urgensi untuk mengembangkan solusi pemindaian
+keamanan jaringan yang mudah digunakan (user-friendly) oleh pengguna
+non-teknis. Hafeez \textit{et al.}~\cite{b4} mendemonstrasikan bahwa deteksi
+ancaman pada tingkat jaringan (network-level detection) merupakan pendekatan
+yang paling efektif dan non-intrusive untuk mengidentifikasi aktivitas
+berbahaya pada perangkat IoT, tanpa memerlukan modifikasi pada perangkat itu
+sendiri. Pendekatan ini menjadi landasan konseptual bagi pengembangan aplikasi
+pemindai keamanan jaringan rumah dalam penelitian ini.
+
+Berdasarkan uraian latar belakang di atas, penelitian ini mengusulkan
+pengembangan sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python
+yang diberi nama HomeGuard. Aplikasi ini dirancang untuk mengidentifikasi
+kerentanan perangkat IoT pada jaringan Wi-Fi domestik dengan mengacu pada
+kerangka kerja OWASP IoT Top 10~\cite{b9} sebagai standar klasifikasi
+kerentanan.
+
+\subsection{Rumusan Masalah}
+\begin{enumerate}
+    \item Bagaimana merancang dan mengimplementasikan aplikasi pemindai
+    keamanan jaringan rumah yang mampu mengidentifikasi kerentanan perangkat
+    IoT pada jaringan Wi-Fi domestik?
+    \item Apa saja jenis kerentanan yang paling umum ditemukan pada perangkat
+    IoT dalam jaringan Wi-Fi domestik berdasarkan kerangka acuan OWASP IoT
+    Top 10?
+    \item Bagaimana efektivitas aplikasi yang dikembangkan dalam mendeteksi
+    kerentanan keamanan pada perangkat IoT di lingkungan jaringan rumah?
+\end{enumerate}
+
+\subsection{Tujuan Penelitian}
+\begin{enumerate}
+    \item Merancang dan membangun aplikasi pemindai keamanan jaringan rumah
+    berbasis Python yang mengintegrasikan modul network discovery, port
+    scanning, service detection, dan pemetaan kerentanan.
+    \item Mengidentifikasi dan mengklasifikasikan jenis-jenis kerentanan yang
+    terdapat pada perangkat IoT dalam jaringan Wi-Fi domestik berdasarkan
+    standar OWASP IoT Top 10.
+    \item Mengevaluasi efektivitas aplikasi yang dikembangkan dalam mendeteksi
+    kerentanan keamanan pada perangkat IoT melalui serangkaian pengujian pada
+    lingkungan jaringan rumah yang sebenarnya (real-world testing).
+\end{enumerate}
+
+\subsection{Manfaat Penelitian}
+\textbf{Manfaat Praktis:} Menyediakan sebuah tools pemindai keamanan jaringan
+yang open-source, mudah digunakan, dan dapat dioperasikan oleh pengguna rumahan
+tanpa memerlukan keahlian teknis mendalam untuk mengaudit keamanan jaringan
+Wi-Fi dan perangkat IoT miliknya.
+
+\textbf{Manfaat Akademis:} Berkontribusi pada literatur akademik di bidang
+keamanan IoT domestik dengan menyajikan bukti empiris mengenai lanskap
+kerentanan perangkat IoT pada jaringan rumah tangga di Indonesia, serta
+menawarkan pendekatan sistematis untuk penilaian risiko berbasis OWASP IoT
+Top 10.
+
+\subsection{Batasan Masalah}
+\begin{enumerate}
+    \item Pengujian dilakukan secara eksklusif pada jaringan Wi-Fi rumah milik
+    peneliti sendiri, sesuai dengan prinsip etika keamanan siber dan ketentuan
+    hukum yang berlaku.
+    \item Pemindaian berfokus pada analisis tingkat jaringan (network-level
+    analysis), mencakup host discovery, port scanning, dan service detection,
+    tanpa melakukan analisis firmware perangkat.
+    \item Aplikasi dirancang sebagai non-intrusive scanner yang tidak melakukan
+    eksploitasi aktif (active exploitation) terhadap kerentanan yang ditemukan.
+    \item Klasifikasi kerentanan mengacu pada kerangka kerja OWASP IoT Top 10
+    versi 2018~\cite{b9}.
+    \item Antarmuka pengguna dikembangkan berbasis web menggunakan framework
+    Streamlit.
+\end{enumerate}
