@@ -45,6 +45,7 @@ OUI (seed) + opsi database IEEE penuh.
 | 7 | 10–11 Jun | Dokumentasi profesional (README, badge, LICENSE, CONTRIBUTING) | ✅ |
 | 8 | 14 Jun | Klasifikasi tipe perangkat + database OUI IEEE | ✅ |
 | 9 | 14 Jun | Penyusunan paper LaTeX utuh (Bab I–VI) | ✅ |
+| 10 | 14 Jun | Paket Overleaf siap-pakai (ZIP + versi satu berkas) | ✅ |
 
 ---
 
@@ -133,6 +134,14 @@ implementasi, plus gambar dan 22 referensi — siap di-compile jadi satu PDF.
 > 💬 **Paparan ke dosen:** "Paper sudah lengkap enam bab dan bisa langsung
 > di-compile di Overleaf. Bagian metodologi dan pengujian saya tulis benar-benar
 > mengacu pada kode yang sudah jalan, bukan sekadar rencana."
+
+### Milestone 10 — Paket Overleaf Siap-Pakai (14 Jun)
+**Apa:** Menyediakan **versi satu berkas** (`paper/homeguard_overleaf.tex`,
+seluruh bab digabung) dan paket ZIP berisi `.tex` + gambar agar paper dapat
+langsung diunggah dan di-compile di Overleaf tanpa konfigurasi manual.
+
+> 💬 **Paparan ke dosen:** "Papernya sudah dalam bentuk yang siap di-compile —
+> tinggal unggah ke Overleaf dan klik compile, langsung jadi PDF utuh."
 
 ---
 
