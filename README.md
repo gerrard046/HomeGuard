@@ -74,6 +74,8 @@ Indonesia.
   murni) — **tanpa dependensi wajib & tanpa hak akses root**.
 - 🧱 Arsitektur **pipeline 4 modul** yang jelas dan dapat diaudit.
 - 🗂️ Pemetaan eksplisit ke **OWASP IoT Top 10 2018** + skor risiko heuristik.
+- 🏷️ **Klasifikasi tipe perangkat** (kamera/router/printer/NAS/...) dari
+  layanan + vendor OUI, dengan vendor lookup seed + database IEEE opsional.
 - 🔌 **Opsional**: probe UDP (SSDP/UPnP & mDNS), integrasi `nmap -sV` dengan
   *fallback* otomatis, dan cek kredensial bawaan (*opt-in*).
 - 🖥️ Dua antarmuka: **CLI** (laporan berwarna + ekspor JSON/PDF) dan **web
@@ -285,6 +287,32 @@ bukan brute-force):
 Temuan kredensial bawaan dipetakan ke **I1 + I9**, severity **KRITIS** — persis
 vektor utama botnet **Mirai**.
 
+### Fitur: Klasifikasi Tipe Perangkat (`classify.py`)
+
+Menebak **jenis perangkat** (Kamera IP/CCTV, Router/Gateway, Printer, NAS,
+Media/Smart TV, Hub/Broker IoT, Speaker Pintar, Single-Board Computer,
+Mikrokontroler IoT, dll) dari kombinasi **sinyal** non-intrusif:
+
+- **Layanan/port khas** — mis. RTSP (554/8554) → kamera; JetDirect/IPP
+  (9100/631) → printer; SMB (445) → NAS; Cast (8009) → media; MQTT (1883) →
+  hub IoT.
+- **Vendor OUI** — mis. Hikvision/Dahua → kamera; TP-Link/ASUS → router;
+  Raspberry Pi → SBC; Espressif → mikrokontroler.
+
+Tingkat **keyakinan**: `tinggi` (sinyal layanan & vendor sepakat), `sedang`
+(salah satu sinyal kuat), `rendah` (tebakan pola generik). Disederhanakan dari
+*device fingerprinting* (lih. Sivanathan et al.) menjadi aturan transparan.
+
+### Vendor Lookup OUI: Seed + Database Penuh
+
+- **Seed bawaan** (`data/oui.py`) — ±80 prefiks OUI vendor IoT/jaringan umum,
+  langsung tersedia tanpa internet.
+- **Database IEEE penuh (opsional)** — jalankan `python tools/update_oui.py`
+  untuk mengunduh registri OUI IEEE (~30k+ vendor) ke
+  `homeguard/data/oui_full.txt`. Bila berkas ada, ia **diprioritaskan** di atas
+  seed; bila tidak, lookup otomatis memakai seed. Berkas penuh tidak di-commit
+  (di-*gitignore*) karena besar.
+
 ### Orkestrator & Laporan (`scanner.py`)
 
 `HomeGuardScanner` menyatukan seluruh modul:
@@ -373,16 +401,18 @@ HomeGuard/
 │   ├── portscan.py             # Modul 2 & 3: port scan (TCP+UDP) + layanan
 │   ├── vulnmap.py              # Modul 4: pemetaan OWASP + skor risiko
 │   ├── credcheck.py            # Cek kredensial bawaan (opt-in, I1/I9)
+│   ├── classify.py             # Klasifikasi tipe perangkat (kamera/router/...)
 │   ├── report_pdf.py           # Ekspor laporan PDF (pustaka standar)
 │   ├── scanner.py              # orkestrator pipeline end-to-end
 │   └── data/
 │       ├── iot_ports.py        # katalog port IoT
 │       ├── owasp_iot.py        # OWASP IoT Top 10 2018
-│       └── oui.py              # lookup vendor OUI
+│       └── oui.py              # lookup vendor OUI (seed + loader DB penuh)
+├── tools/update_oui.py         # pemutakhir database OUI IEEE (opsional)
 ├── paper/                      # bahan paper: diagram, flowchart, bab lanjutan
-└── tests/                      # 24 unit test (pytest)
-    ├── test_vulnmap.py  test_discovery.py
-    └── test_portscan.py test_scanner.py
+└── tests/                      # 30 unit test (pytest)
+    ├── test_vulnmap.py  test_discovery.py  test_portscan.py
+    └── test_scanner.py  test_classify.py
 ```
 
 ---
@@ -534,6 +564,8 @@ vulnmap.assess_host([{"port": 23}, {"port": 80}])    # ringkasan host
       "ip": "192.168.1.10",
       "mac": "B8:27:EB:12:34:56",
       "vendor": "Raspberry Pi Foundation",
+      "device_type": "Single-Board Computer",
+      "device_confidence": "sedang",
       "severity": "KRITIS",
       "score": 100,
       "owasp": ["I1", "I2", "I3", "I5", "I7"],
@@ -575,7 +607,7 @@ vulnmap.assess_host([{"port": 23}, {"port": 80}])    # ringkasan host
 
 ## Pengujian
 
-Terdapat **24 unit test** (`pytest`) yang seluruhnya harus **LULUS**:
+Terdapat **30 unit test** (`pytest`) yang seluruhnya harus **LULUS**:
 
 ```bash
 pip install pytest
@@ -588,6 +620,7 @@ pytest -q
 | `tests/test_discovery.py` (6) | normalisasi MAC; MAC invalid ditolak; vendor lookup (Raspberry Pi vs Unknown); parsing `ip neigh` & `arp -a`; ekspansi CIDR /30 & /32; deteksi IP privat |
 | `tests/test_portscan.py` (6) | scan port terbuka/tertutup + banner; `scan_host_socket`; parsing grepable nmap; fallback nmap→socket; probe UDP terbuka |
 | `tests/test_scanner.py` (6) | agregasi severity/OWASP; pengurutan laporan; integrasi banner usang→+I5; deteksi kredensial bawaan→I1/I9; validitas PDF |
+| `tests/test_classify.py` (6) | klasifikasi kamera/printer/router; keyakinan tinggi (layanan+vendor); host kosong→tidak diketahui; lookup OUI (seed/penuh) |
 
 CI (GitHub Actions) menjalankan `pytest` otomatis pada Python 3.9–3.12 di
 setiap *push* / *pull request*.
@@ -615,10 +648,12 @@ setiap *push* / *pull request*.
 1. ✅ **GitHub Actions CI** untuk `pytest` (`.github/workflows/ci.yml`).
 2. **Korelasi versi → CVE (I5)** melalui **NVD API**.
 3. ✅ **Ekspor laporan PDF** — `homeguard/report_pdf.py`.
-4. **Database OUI lengkap IEEE** menggantikan seed.
+4. ✅ **Database OUI IEEE** — loader `oui_full.txt` + `tools/update_oui.py`
+   (seed bawaan diperluas; DB penuh via unduhan IEEE).
 5. ✅ **Pemindaian UDP** (SSDP/UPnP & mDNS) — *pendalaman CoAP & profil mDNS
    penuh masih berlanjut*.
-6. **Deteksi tipe perangkat** (klasifikasi kamera/router/plug) & **IPv6**.
+6. ✅ **Klasifikasi tipe perangkat** (kamera/router/printer/NAS/...) —
+   *penyempurnaan & dukungan **IPv6** masih berlanjut*.
 
 ---
 

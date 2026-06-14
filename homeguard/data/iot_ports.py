@@ -154,6 +154,38 @@ IOT_PORTS = {
         "note": "Panel admin/HTTP alternatif yang umum pada perangkat IoT.",
         "recommendation": "Batasi akses dan terapkan autentikasi kuat.",
     },
+    445: {
+        "service": "smb",
+        "owasp": ["I2", "I7"],
+        "severity": SEVERITY_TINGGI,
+        "note": "Berbagi berkas SMB terbuka (umum pada NAS) berisiko akses "
+        "tak sah & eksploitasi protokol.",
+        "recommendation": "Batasi SMB ke jaringan tepercaya, wajibkan "
+        "autentikasi, nonaktifkan SMBv1.",
+    },
+    631: {
+        "service": "ipp",
+        "owasp": ["I2", "I3"],
+        "severity": SEVERITY_RENDAH,
+        "note": "Layanan cetak IPP (printer) terekspos.",
+        "recommendation": "Batasi akses printer ke jaringan lokal.",
+    },
+    8009: {
+        "service": "cast",
+        "owasp": ["I2"],
+        "severity": SEVERITY_RENDAH,
+        "note": "Protokol Google Cast (Chromecast/smart TV) terbuka.",
+        "recommendation": "Batasi akses dan gunakan jaringan tepercaya.",
+    },
+    9100: {
+        "service": "jetdirect",
+        "owasp": ["I2"],
+        "severity": SEVERITY_SEDANG,
+        "note": "Port cetak mentah (JetDirect/RAW) printer sering tanpa "
+        "autentikasi sehingga rentan penyalahgunaan.",
+        "recommendation": "Batasi akses printer, nonaktifkan port mentah bila "
+        "tak diperlukan.",
+    },
     49152: {
         "service": "upnp",
         "owasp": ["I2"],

@@ -202,6 +202,9 @@ def build_pdf_bytes(laporan: dict) -> bytes:
         judul = (f"{h['ip']}  -  {h.get('vendor') or 'Unknown'}  "
                  f"[{h['severity']}]  skor {h['score']}")
         pdf.text(judul, size=11, bold=True, color=warna)
+        if h.get("device_type"):
+            pdf.text(f"Tipe perangkat: {h['device_type']}", size=9, indent=12,
+                     color=(0.3, 0.3, 0.3))
         if h.get("mac"):
             pdf.text(f"MAC: {h['mac']}", size=9, indent=12,
                      color=(0.3, 0.3, 0.3))

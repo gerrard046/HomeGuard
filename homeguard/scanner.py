@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import datetime
 
-from . import credcheck, discovery, portscan, vulnmap
+from . import classify, credcheck, discovery, portscan, vulnmap
 from .data import owasp_iot
 
 
@@ -78,10 +78,13 @@ class HomeGuardScanner:
         agregat = self._agregasi(findings)
         if vendor is None:
             vendor = discovery.lookup_vendor(mac) if mac else "Unknown"
+        tipe = classify.classify_device(terbuka, vendor=vendor)
         return {
             "ip": ip,
             "mac": mac,
             "vendor": vendor,
+            "device_type": tipe["tipe"],
+            "device_confidence": tipe["keyakinan"],
             "severity": agregat["severity"],
             "score": agregat["score"],
             "owasp": agregat["owasp"],

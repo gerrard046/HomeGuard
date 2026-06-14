@@ -61,12 +61,17 @@ def badge(severity: str) -> str:
 
 def tampilkan_host(host: dict) -> None:
     """Render satu kartu host beserta temuan-temuannya."""
+    tipe = host.get("device_type", "")
     judul = (
-        f"{host['ip']} - {host.get('vendor') or 'Unknown'} "
-        f"[{host['severity']}] skor {host['score']}"
+        f"{host['ip']} - {host.get('vendor') or 'Unknown'}"
+        + (f" - {tipe}" if tipe else "")
+        + f"  [{host['severity']}] skor {host['score']}"
     )
     with st.expander(judul, expanded=host["score"] >= 75):
         st.markdown(badge(host["severity"]), unsafe_allow_html=True)
+        if tipe:
+            st.write(f"**Tipe perangkat:** {tipe} "
+                     f"(keyakinan {host.get('device_confidence', '-')})")
         if host.get("mac"):
             st.write(f"**MAC:** {host['mac']}")
         if host["owasp"]:
