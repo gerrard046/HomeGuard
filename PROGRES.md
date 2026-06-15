@@ -47,6 +47,7 @@ OUI (seed) + opsi database IEEE penuh.
 | 9 | 14 Jun | Penyusunan paper LaTeX utuh (Bab I–VI) | ✅ |
 | 10 | 14 Jun | Paket Overleaf siap-pakai (ZIP + versi satu berkas) | ✅ |
 | 11 | 14 Jun | Cek keamanan TLS/sertifikat & header keamanan HTTP | ✅ |
+| 12 | 15 Jun | Versi paper Word (.docx) untuk pembaruan berkala | ✅ |
 
 ---
 
@@ -154,6 +155,15 @@ keamanan HTTP seperti HSTS dan CSP (→ I3). Tetap memakai pustaka standar.
 > tapi juga menilai kualitas enkripsinya — misalnya mendeteksi sertifikat
 > kedaluwarsa atau protokol TLS lama yang rentan disadap. Ini memperkuat
 > cakupan kategori I7 (transfer data tidak aman) pada OWASP IoT Top 10."
+
+### Milestone 12 — Versi Paper Word (15 Jun)
+**Apa:** Menyediakan paper dalam format **Word (.docx)** (dihasilkan otomatis
+dari sumber LaTeX via `paper/build_docx.py`) agar mudah diperbarui berkala dan
+dilacak perubahannya menggunakan fitur **Track Changes / Compare** Word.
+
+> 💬 **Paparan ke dosen:** "Selain PDF, paper juga tersedia dalam Word sehingga
+> mudah Bapak/Ibu beri catatan revisi, dan saya bisa menampilkan dengan jelas
+> bagian mana yang sudah diperbarui dari versi sebelumnya."
 
 ---
 
