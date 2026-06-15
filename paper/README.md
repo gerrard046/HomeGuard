@@ -13,6 +13,30 @@ Berkas LaTeX & gambar untuk menyusun paper menjadi satu PDF utuh.
 | `flowchart_alur.png` / `.py` | Gambar diagram alir penggunaan (+ generator). |
 | `catatan_revisi_paper.md` | Saran revisi kalimat agar konsisten dengan implementasi. |
 
+## Versi Word (.docx) untuk pembaruan berkala
+
+Selain PDF (LaTeX), tersedia versi **Word** untuk pembaruan berkala dan
+pelacakan perubahan.
+
+- Berkas siap pakai: **`HomeGuard_paper.docx`** (dihasilkan dari `main.tex`).
+- Regenerasi setelah mengubah sumber LaTeX:
+
+  ```bash
+  pip install pypandoc_binary
+  python paper/build_docx.py        # -> paper/HomeGuard_paper.docx
+  ```
+
+**Melihat "apa yang berubah" antar versi (di Microsoft Word):**
+1. Simpan `.docx` versi lama (mis. `HomeGuard_paper_v1.docx`).
+2. Setelah update, hasilkan `.docx` baru.
+3. Word → tab **Review → Compare → Compare...** → pilih dokumen lama & baru →
+   Word menampilkan **redline** (tambahan/hapusan disorot).
+4. Saat Anda mengedit langsung di Word, aktifkan **Review → Track Changes**
+   agar setiap perubahan tercatat.
+
+> Sumber kebenaran tetap berkas LaTeX (`*.tex`) yang ter-versioning di Git;
+> `.docx` adalah turunan untuk kemudahan kolaborasi/review di Word.
+
 ## Cara compile (disarankan: Overleaf, tanpa instalasi)
 
 1. Buka [overleaf.com](https://www.overleaf.com) → **New Project** → **Upload Project**.
