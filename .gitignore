@@ -37,3 +37,4 @@ homeguard/data/oui_full.txt
 .idea/
 *.swp
 .DS_Store
+paper/_preview.css
