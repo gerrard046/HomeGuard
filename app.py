@@ -99,12 +99,84 @@ def panel_owasp() -> None:
             st.write(info["deskripsi"])
 
 
+def inject_css() -> None:
+    """Suntikkan CSS khusus agar tampilan lebih modern & profesional."""
+    st.markdown(
+        """
+        <style>
+          /* Sembunyikan menu & footer bawaan Streamlit untuk tampilan bersih */
+          #MainMenu, footer {visibility: hidden;}
+
+          /* Latar utama */
+          .stApp {background: #f7f9fc;}
+
+          /* Hero header bergradien */
+          .hg-hero {
+            background: linear-gradient(135deg, #0d1b3e 0%, #1b3a6b 60%,
+                       #1a9e5a 140%);
+            border-radius: 16px; padding: 22px 28px; margin-bottom: 18px;
+            box-shadow: 0 8px 24px rgba(13,27,62,.18);
+          }
+          .hg-hero h1 {color:#fff; margin:0; font-size:2.1rem; font-weight:800;
+            letter-spacing:.5px;}
+          .hg-hero p {color:#cfddf0; margin:.25rem 0 0; font-size:1rem;}
+          .hg-badge-ver {display:inline-block; background:rgba(255,255,255,.15);
+            color:#fff; padding:2px 10px; border-radius:20px; font-size:.8rem;
+            font-weight:600; margin-left:10px; vertical-align:middle;}
+
+          /* Kartu metrik */
+          div[data-testid="stMetric"] {
+            background:#fff; border:1px solid #e6ebf2; border-radius:14px;
+            padding:14px 18px; box-shadow:0 2px 8px rgba(13,27,62,.05);
+          }
+          div[data-testid="stMetricValue"] {font-weight:800;}
+
+          /* Expander (kartu host) lebih menonjol */
+          div[data-testid="stExpander"] {
+            border:1px solid #e6ebf2 !important; border-radius:14px !important;
+            box-shadow:0 2px 10px rgba(13,27,62,.06); margin-bottom:10px;
+            overflow:hidden;
+          }
+          div[data-testid="stExpander"] summary {font-weight:700;
+            font-size:1.02rem;}
+
+          /* Tombol primer & unduh */
+          .stButton>button, .stDownloadButton>button {
+            border-radius:10px; font-weight:700; border:none;
+          }
+          .stButton>button[kind="primary"] {
+            background:linear-gradient(135deg,#1a9e5a,#15824a);
+          }
+
+          /* Sidebar */
+          section[data-testid="stSidebar"] {
+            background:#ffffff; border-right:1px solid #e6ebf2;
+          }
+          section[data-testid="stSidebar"] h2 {color:#0d1b3e; font-weight:800;}
+
+          /* Kotak banner etika */
+          div[data-testid="stAlert"] {border-radius:12px;}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def main() -> None:
     """Titik masuk aplikasi Streamlit."""
     st.set_page_config(page_title="HomeGuard", page_icon="🛡️", layout="wide")
-    st.title("🛡️ HomeGuard")
-    st.caption(
-        f"Pemindai keamanan jaringan rumah untuk perangkat IoT - v{__version__}"
+    inject_css()
+    st.markdown(
+        f"""
+        <div class="hg-hero">
+          <h1>🛡️ HomeGuard
+            <span class="hg-badge-ver">v{__version__}</span>
+          </h1>
+          <p>Pemindai keamanan jaringan rumah untuk perangkat IoT —
+             pemetaan OWASP IoT Top 10 &amp; skor risiko</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
     st.warning(
         "Etika: Gunakan HANYA pada jaringan milik sendiri atau yang Anda "
