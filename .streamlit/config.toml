@@ -1,9 +1,10 @@
 [theme]
-# Tema khusus HomeGuard - nuansa keamanan (biru tua + aksen hijau)
-primaryColor = "#1a9e5a"
-backgroundColor = "#f7f9fc"
-secondaryBackgroundColor = "#ffffff"
-textColor = "#1f2733"
+# Tema HomeGuard "Command Center" - dark cyber (navy + neon cyan)
+base = "dark"
+primaryColor = "#22d3ee"
+backgroundColor = "#0a0e1f"
+secondaryBackgroundColor = "#111733"
+textColor = "#e5ecf5"
 font = "sans serif"
 
 [server]

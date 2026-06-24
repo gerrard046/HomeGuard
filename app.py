@@ -22,13 +22,13 @@ from homeguard import HomeGuardScanner, __version__, discovery
 from homeguard.data import owasp_iot
 from homeguard.report_pdf import build_pdf_bytes
 
-# Pemetaan severity ke warna untuk badge tampilan.
+# Pemetaan severity ke warna untuk badge tampilan (dipertajam untuk dark mode).
 WARNA_SEVERITY = {
-    "AMAN": "#2e7d32",
-    "RENDAH": "#0277bd",
-    "SEDANG": "#f9a825",
-    "TINGGI": "#ad1457",
-    "KRITIS": "#c62828",
+    "AMAN": "#22c55e",
+    "RENDAH": "#38bdf8",
+    "SEDANG": "#fbbf24",
+    "TINGGI": "#fb923c",
+    "KRITIS": "#f43f5e",
 }
 
 
@@ -147,114 +147,143 @@ def panel_owasp() -> None:
 
 
 def inject_css() -> None:
-    """Suntikkan CSS khusus agar tampilan lebih modern & profesional."""
+    """Suntikkan CSS tema 'Command Center' dark-cyber untuk HomeGuard."""
     st.markdown(
         """
         <style>
-          /* Sembunyikan menu & footer bawaan Streamlit untuk tampilan bersih */
-          #MainMenu, footer {visibility: hidden;}
+          /* ===== Dasar gelap ===== */
+          #MainMenu, footer, header[data-testid="stHeader"] {visibility:hidden;}
+          .stApp {background:
+            radial-gradient(1200px 600px at 15% -5%, #15204a 0%, #0a0e1f 55%);
+            color:#e5ecf5;}
+          .block-container {padding-top:1.2rem;}
 
-          /* Latar utama */
-          .stApp {background: #f7f9fc;}
+          /* Label gaya terminal (uppercase + monospace) */
+          .hg-label {font-family:'Consolas','Courier New',monospace;
+            text-transform:uppercase; letter-spacing:1.5px; font-size:.72rem;
+            color:#8a93a8; font-weight:700; margin-bottom:6px;}
 
-          /* Hero header bergradien */
-          .hg-hero {
-            background: linear-gradient(135deg, #0d1b3e 0%, #1b3a6b 60%,
-                       #1a9e5a 140%);
-            border-radius: 16px; padding: 22px 28px; margin-bottom: 18px;
-            box-shadow: 0 8px 24px rgba(13,27,62,.18);
-          }
-          .hg-hero h1 {color:#fff; margin:0; font-size:2.1rem; font-weight:800;
+          /* ===== Top bar / hero ===== */
+          .hg-hero {display:flex; align-items:center; justify-content:space-between;
+            background:linear-gradient(90deg,#0d1430 0%,#111a3d 100%);
+            border:1px solid #2a3566; border-radius:14px; padding:14px 22px;
+            margin-bottom:18px; box-shadow:0 0 0 1px #6d5dfc33,
+            0 10px 30px rgba(0,0,0,.35);}
+          .hg-hero-logo {font-size:1.5rem; font-weight:800; color:#fff;
             letter-spacing:.5px;}
-          .hg-hero p {color:#cfddf0; margin:.25rem 0 0; font-size:1rem;}
-          .hg-badge-ver {display:inline-block; background:rgba(255,255,255,.15);
-            color:#fff; padding:2px 10px; border-radius:20px; font-size:.8rem;
-            font-weight:600; margin-left:10px; vertical-align:middle;}
+          .hg-hero-logo span {color:#22d3ee;}
+          .hg-hero-nav {font-family:'Consolas',monospace; font-size:.78rem;
+            letter-spacing:2px; color:#8a93a8;}
+          .hg-hero-nav b {color:#22d3ee;}
+          .hg-badge-ver {background:#22d3ee1a; color:#22d3ee; padding:3px 12px;
+            border-radius:20px; font-size:.74rem; font-weight:700;
+            border:1px solid #22d3ee44; font-family:'Consolas',monospace;}
 
-          /* Kartu metrik */
-          div[data-testid="stMetric"] {
-            background:#fff; border:1px solid #e6ebf2; border-radius:14px;
-            padding:14px 18px; box-shadow:0 2px 8px rgba(13,27,62,.05);
-          }
-          div[data-testid="stMetricValue"] {font-weight:800;}
+          .hg-title {font-size:2.4rem; font-weight:800; color:#fff; margin:0;
+            letter-spacing:.5px;}
+          .hg-subtitle {color:#8a93a8; margin:.1rem 0 1rem;}
 
-          /* Expander (kartu host) lebih menonjol */
-          div[data-testid="stExpander"] {
-            border:1px solid #e6ebf2 !important; border-radius:14px !important;
-            box-shadow:0 2px 10px rgba(13,27,62,.06); margin-bottom:10px;
-            overflow:hidden;
-          }
-          div[data-testid="stExpander"] summary {font-weight:700;
-            font-size:1.02rem;}
+          /* ===== Kartu metrik / statistik ===== */
+          .hg-stats {display:flex; gap:16px; margin:4px 0 18px;}
+          .hg-stat {flex:1; background:#0f1733; border:1px solid #233063;
+            border-radius:14px; padding:16px 18px; position:relative;
+            box-shadow:0 6px 20px rgba(0,0,0,.25);}
+          .hg-stat::before {content:""; position:absolute; left:16px; right:16px;
+            top:0; height:2px; background:#22d3ee; border-radius:2px;
+            box-shadow:0 0 12px #22d3ee;}
+          .hg-stat-label {font-family:'Consolas',monospace; text-transform:uppercase;
+            letter-spacing:1.2px; font-size:.72rem; color:#8a93a8; font-weight:700;}
+          .hg-stat-val {font-size:2.4rem; font-weight:800; color:#fff;
+            line-height:1.15;}
 
-          /* Tombol primer & unduh */
-          .stButton>button, .stDownloadButton>button {
-            border-radius:10px; font-weight:700; border:none;
-          }
-          .stButton>button[kind="primary"] {
-            background:linear-gradient(135deg,#1a9e5a,#15824a);
-          }
+          /* ===== Kotak etika ===== */
+          .hg-ethics {background:#1a1606; border:1px solid #5a4a12;
+            border-left:4px solid #fbbf24; border-radius:12px; padding:14px 18px;
+            margin-bottom:16px;}
+          .hg-ethics b {color:#fbbf24;}
+          .hg-ethics-t {color:#fbbf24; font-weight:800; margin-bottom:4px;}
+          .hg-ethics p {color:#cdb98a; font-size:.88rem; margin:0;}
 
-          /* Sidebar */
-          section[data-testid="stSidebar"] {
-            background:#ffffff; border-right:1px solid #e6ebf2;
-          }
-          section[data-testid="stSidebar"] h2 {color:#0d1b3e; font-weight:800;}
+          /* ===== Tombol ===== */
+          .stButton>button, .stDownloadButton>button {border-radius:10px;
+            font-weight:700; font-family:'Consolas',monospace; letter-spacing:1px;
+            text-transform:uppercase; border:1px solid #22d3ee55;
+            background:#22d3ee14; color:#22d3ee; transition:all .2s;}
+          .stButton>button:hover, .stDownloadButton>button:hover {
+            background:#22d3ee26; box-shadow:0 0 18px #22d3ee55; color:#aef3ff;}
+          .stButton>button[kind="primary"] {background:linear-gradient(135deg,
+            #22d3ee,#0ea5b7); color:#04222a; border:none;
+            box-shadow:0 0 18px #22d3ee66;}
 
-          /* Kotak banner etika */
-          div[data-testid="stAlert"] {border-radius:12px;}
+          /* ===== Sidebar ===== */
+          section[data-testid="stSidebar"] {background:#0c1230;
+            border-right:1px solid #233063;}
+          section[data-testid="stSidebar"] h2, .hg-side-h {color:#fff;
+            font-weight:800; letter-spacing:.5px;}
+          section[data-testid="stSidebar"] label {color:#c3ccde !important;}
+          /* Pengelompok di sidebar */
+          .hg-side-status {font-family:'Consolas',monospace; font-size:.74rem;
+            color:#22d3ee; letter-spacing:1.5px;}
+          .hg-side-status::before {content:"● "; color:#22c55e;}
 
-          /* Pill severity */
-          .hg-pill {color:#fff; padding:3px 12px; border-radius:20px;
-            font-weight:700; font-size:.78rem; letter-spacing:.4px;
-            display:inline-block;}
+          /* ===== Input ===== */
+          input, .stTextInput input, .stNumberInput input {
+            background:#0a0f28 !important; color:#7fe7ff !important;
+            border:1px solid #2a3566 !important;
+            font-family:'Consolas',monospace !important;}
 
-          /* Chip kategori OWASP */
-          .hg-chip {display:inline-block; background:#eef2f8; color:#33415c;
-            border:1px solid #d8e0ec; padding:1px 9px; border-radius:12px;
-            font-size:.74rem; font-weight:700; margin:2px 4px 2px 0;}
+          /* ===== Expander gelap ===== */
+          div[data-testid="stExpander"] {border:1px solid #233063 !important;
+            border-radius:12px !important; background:#0f1733;
+            box-shadow:0 6px 18px rgba(0,0,0,.25); margin-bottom:10px;}
+          div[data-testid="stExpander"] summary {font-weight:700;}
 
-          /* Kartu host */
-          .hg-host {background:#fff; border-radius:12px; padding:14px 16px;
-            margin:6px 0 14px; box-shadow:0 2px 10px rgba(13,27,62,.06);}
+          /* ===== Pill & chip ===== */
+          .hg-pill {color:#04121a; padding:3px 12px; border-radius:20px;
+            font-weight:800; font-size:.74rem; letter-spacing:.6px;
+            display:inline-block; font-family:'Consolas',monospace;}
+          .hg-chip {display:inline-block; background:#16204a; color:#7fb0ff;
+            border:1px solid #2a3a73; padding:1px 9px; border-radius:6px;
+            font-size:.72rem; font-weight:700; margin:2px 4px 2px 0;
+            font-family:'Consolas',monospace;}
+
+          /* ===== Kartu host ===== */
+          .hg-host {background:#0f1733; border:1px solid #233063;
+            border-radius:12px; padding:14px 16px; margin:6px 0 14px;}
           .hg-host-top {display:flex; justify-content:space-between;
             align-items:center;}
-          .hg-host-ip {font-size:1.3rem; font-weight:800; color:#0d1b3e;}
-          .hg-host-vendor {color:#6b7280; margin-left:8px; font-size:.92rem;}
-          .hg-score {font-size:1.7rem; font-weight:800; margin-left:10px;
-            vertical-align:middle;}
-          .hg-score small {font-size:.8rem; color:#9aa3b2; font-weight:600;}
-          .hg-bar {height:8px; background:#eef2f8; border-radius:6px;
-            margin:10px 0; overflow:hidden;}
-          .hg-bar-fill {height:100%; border-radius:6px;
-            transition:width .4s ease;}
-          .hg-meta {color:#4b5563; font-size:.9rem; margin:4px 0;}
+          .hg-host-ip {font-size:1.3rem; font-weight:800; color:#fff;
+            font-family:'Consolas',monospace;}
+          .hg-host-vendor {color:#8a93a8; margin-left:8px; font-size:.9rem;}
+          .hg-score {font-size:1.8rem; font-weight:800; margin-left:10px;
+            vertical-align:middle; font-family:'Consolas',monospace;}
+          .hg-score small {font-size:.8rem; color:#5e6b8a; font-weight:600;}
+          .hg-bar {height:8px; background:#0a0f28; border-radius:6px;
+            margin:10px 0; overflow:hidden; border:1px solid #1c2854;}
+          .hg-bar-fill {height:100%; border-radius:6px; transition:width .4s ease;}
+          .hg-meta {color:#aab4c8; font-size:.88rem; margin:4px 0;}
           .hg-chips {margin-top:4px;}
-          .hg-muted {color:#9aa3b2; font-size:.8rem;}
+          .hg-muted {color:#5e6b8a; font-size:.8rem;}
 
-          /* Kartu temuan per port */
-          .hg-find {background:#fafbfd; border:1px solid #eef2f8;
+          /* ===== Kartu temuan ===== */
+          .hg-find {background:#0b1230; border:1px solid #1c2854;
             border-radius:10px; padding:10px 14px; margin:8px 0;}
           .hg-find-head {display:flex; align-items:center; gap:8px;
             flex-wrap:wrap;}
-          .hg-port {font-weight:800; color:#0d1b3e; font-size:1rem;
+          .hg-port {font-weight:800; color:#7fe7ff; font-size:1rem;
             font-family:'Consolas',monospace;}
-          .hg-note {color:#4b5563; font-size:.9rem; margin:6px 0;}
-          .hg-banner {background:#0d1b3e; color:#6fe39f; padding:8px 12px;
-            border-radius:8px; font-family:'Consolas',monospace;
-            font-size:.84rem; margin:6px 0; white-space:pre-wrap;
-            word-break:break-all;}
-          .hg-reco {color:#15824a; font-size:.86rem; font-weight:600;
+          .hg-note {color:#aab4c8; font-size:.88rem; margin:6px 0;}
+          .hg-banner {background:#040a1e; color:#22d3ee;
+            padding:8px 12px; border-radius:8px; border:1px solid #1c2854;
+            font-family:'Consolas',monospace; font-size:.82rem; margin:6px 0;
+            white-space:pre-wrap; word-break:break-all;}
+          .hg-reco {color:#34d399; font-size:.85rem; font-weight:600;
             margin-top:6px;}
 
-          /* Baris statistik ringkasan */
-          .hg-stats {display:flex; gap:14px; margin:4px 0 16px;}
-          .hg-stat {flex:1; background:#fff; border:1px solid #e6ebf2;
-            border-radius:14px; padding:14px 18px;
-            box-shadow:0 2px 8px rgba(13,27,62,.05);}
-          .hg-stat-label {color:#6b7280; font-size:.85rem; font-weight:600;}
-          .hg-stat-val {font-size:2rem; font-weight:800; color:#0d1b3e;
-            line-height:1.1;}
+          /* ===== Kartu OWASP ===== */
+          .hg-owasp-code {font-family:'Consolas',monospace; color:#22d3ee;
+            font-size:.72rem; letter-spacing:1px; text-transform:uppercase;}
+          h2, h3 {color:#fff;}
         </style>
         """,
         unsafe_allow_html=True,
@@ -265,26 +294,41 @@ def main() -> None:
     """Titik masuk aplikasi Streamlit."""
     st.set_page_config(page_title="HomeGuard", page_icon="🛡️", layout="wide")
     inject_css()
+    # Top bar bergaya command center
     st.markdown(
         f"""
         <div class="hg-hero">
-          <h1>🛡️ HomeGuard
-            <span class="hg-badge-ver">v{__version__}</span>
-          </h1>
-          <p>Pemindai keamanan jaringan rumah untuk perangkat IoT —
-             pemetaan OWASP IoT Top 10 &amp; skor risiko</p>
+          <div class="hg-hero-logo">🛡️ Home<span>Guard</span></div>
+          <div class="hg-hero-nav"><b>SCANNER</b> &nbsp;·&nbsp; LAPORAN
+            &nbsp;·&nbsp; OWASP</div>
+          <div class="hg-badge-ver">v{__version__}</div>
+        </div>
+        <div class="hg-title">Pusat Komando</div>
+        <div class="hg-subtitle">Gambaran umum keamanan jaringan IoT Anda
+          — pemetaan OWASP IoT Top 10 &amp; skor risiko.</div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
+        <div class="hg-ethics">
+          <div class="hg-ethics-t">⚖️ Etika Penggunaan</div>
+          <p>Aplikasi ini dirancang <b>KHUSUS</b> untuk menguji jaringan IoT
+          yang Anda miliki atau yang Anda punya izin tertulis untuk mengujinya.
+          Pemindaian tanpa otorisasi adalah ilegal dan melanggar hukum.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    st.warning(
-        "Etika: Gunakan HANYA pada jaringan milik sendiri atau yang Anda "
-        "miliki izin eksplisit untuk memindainya."
-    )
 
     # --- Sidebar konfigurasi ---
     with st.sidebar:
-        st.header("Konfigurasi")
+        st.markdown(
+            '<div class="hg-side-h" style="font-size:1.15rem">'
+            'Konfigurasi Pemindai</div>'
+            '<div class="hg-side-status">SISTEM SIAP</div><br>',
+            unsafe_allow_html=True,
+        )
         mode = st.radio("Mode pemindaian", ["Subnet", "Host tunggal"])
         if mode == "Subnet":
             target = st.text_input(
