@@ -51,44 +51,91 @@ def parse_ports(spek: str):
 
 
 def badge(severity: str) -> str:
-    """Hasilkan potongan HTML badge berwarna untuk sebuah level severity."""
+    """Hasilkan potongan HTML badge (pill) berwarna untuk sebuah severity."""
     warna = WARNA_SEVERITY.get(severity, "#555")
     return (
-        f"<span style='background:{warna};color:white;padding:2px 8px;"
-        f"border-radius:6px;font-weight:600'>{severity}</span>"
+        f"<span class='hg-pill' style='background:{warna};"
+        f"box-shadow:0 0 0 3px {warna}22'>{severity}</span>"
     )
+
+
+def chip_owasp(kode: str) -> str:
+    """Hasilkan chip kecil berwarna untuk satu kategori OWASP (mis. I1)."""
+    return f"<span class='hg-chip'>{kode}</span>"
 
 
 def tampilkan_host(host: dict) -> None:
     """Render satu kartu host beserta temuan-temuannya."""
     tipe = host.get("device_type", "")
+    sev = host["severity"]
+    warna = WARNA_SEVERITY.get(sev, "#555")
+    skor = host["score"]
+    vendor = host.get("vendor") or "Unknown"
     judul = (
-        f"{host['ip']} - {host.get('vendor') or 'Unknown'}"
-        + (f" - {tipe}" if tipe else "")
-        + f"  [{host['severity']}] skor {host['score']}"
+        f"{host['ip']} · {vendor}"
+        + (f" · {tipe}" if tipe else "")
+        + f"   [{sev}] skor {skor}"
     )
-    with st.expander(judul, expanded=host["score"] >= 75):
-        st.markdown(badge(host["severity"]), unsafe_allow_html=True)
+    with st.expander(judul, expanded=skor >= 75):
+        # Header kartu: strip warna severity + skor besar + score bar
+        chips = "".join(chip_owasp(k) for k in host["owasp"])
+        meta = []
         if tipe:
-            st.write(f"**Tipe perangkat:** {tipe} "
-                     f"(keyakinan {host.get('device_confidence', '-')})")
+            meta.append(f"🔖 {tipe} "
+                        f"<small>(keyakinan {host.get('device_confidence','-')})</small>")
         if host.get("mac"):
-            st.write(f"**MAC:** {host['mac']}")
-        if host["owasp"]:
-            st.write(f"**Kategori OWASP:** {', '.join(host['owasp'])}")
+            meta.append(f"🔗 {host['mac']}")
+        meta_html = " &nbsp;·&nbsp; ".join(meta)
+        st.markdown(
+            f"""
+            <div class="hg-host" style="border-left:6px solid {warna}">
+              <div class="hg-host-top">
+                <div>
+                  <span class="hg-host-ip">{host['ip']}</span>
+                  <span class="hg-host-vendor">{vendor}</span>
+                </div>
+                <div style="text-align:right">
+                  {badge(sev)}
+                  <span class="hg-score" style="color:{warna}">{skor}<small>/100</small></span>
+                </div>
+              </div>
+              <div class="hg-bar"><div class="hg-bar-fill"
+                   style="width:{skor}%;background:{warna}"></div></div>
+              <div class="hg-meta">{meta_html}</div>
+              <div class="hg-chips">{chips or '<span class="hg-muted">tidak ada kategori</span>'}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         if not host["findings"]:
-            st.success("Tidak ada port berisiko terdeteksi.")
+            st.success("✓ Tidak ada port berisiko terdeteksi.")
             return
         for f in host["findings"]:
+            fwarna = WARNA_SEVERITY.get(f["severity"], "#555")
+            fchips = "".join(chip_owasp(k) for k in f["owasp"])
+            banner = (f"<div class='hg-banner'>{_esc(f['banner'])}</div>"
+                      if f.get("banner") else "")
             st.markdown(
-                f"**{f['port']}/{f['service']}** &nbsp; "
-                f"{badge(f['severity'])} &nbsp; {', '.join(f['owasp'])}",
+                f"""
+                <div class="hg-find" style="border-left:4px solid {fwarna}">
+                  <div class="hg-find-head">
+                    <span class="hg-port">{f['port']}/{f['service']}</span>
+                    {badge(f['severity'])}
+                    <span class="hg-chips">{fchips}</span>
+                  </div>
+                  <div class="hg-note">{_esc(f['note'])}</div>
+                  {banner}
+                  <div class="hg-reco">💡 {_esc(f['recommendation'])}</div>
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
-            st.caption(f["note"])
-            if f.get("banner"):
-                st.code(f["banner"], language=None)
-            st.caption(f"Rekomendasi: {f['recommendation']}")
+
+
+def _esc(teks: str) -> str:
+    """Escape karakter HTML agar banner/teks aman ditampilkan."""
+    return (str(teks).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;"))
 
 
 def panel_owasp() -> None:
@@ -156,6 +203,58 @@ def inject_css() -> None:
 
           /* Kotak banner etika */
           div[data-testid="stAlert"] {border-radius:12px;}
+
+          /* Pill severity */
+          .hg-pill {color:#fff; padding:3px 12px; border-radius:20px;
+            font-weight:700; font-size:.78rem; letter-spacing:.4px;
+            display:inline-block;}
+
+          /* Chip kategori OWASP */
+          .hg-chip {display:inline-block; background:#eef2f8; color:#33415c;
+            border:1px solid #d8e0ec; padding:1px 9px; border-radius:12px;
+            font-size:.74rem; font-weight:700; margin:2px 4px 2px 0;}
+
+          /* Kartu host */
+          .hg-host {background:#fff; border-radius:12px; padding:14px 16px;
+            margin:6px 0 14px; box-shadow:0 2px 10px rgba(13,27,62,.06);}
+          .hg-host-top {display:flex; justify-content:space-between;
+            align-items:center;}
+          .hg-host-ip {font-size:1.3rem; font-weight:800; color:#0d1b3e;}
+          .hg-host-vendor {color:#6b7280; margin-left:8px; font-size:.92rem;}
+          .hg-score {font-size:1.7rem; font-weight:800; margin-left:10px;
+            vertical-align:middle;}
+          .hg-score small {font-size:.8rem; color:#9aa3b2; font-weight:600;}
+          .hg-bar {height:8px; background:#eef2f8; border-radius:6px;
+            margin:10px 0; overflow:hidden;}
+          .hg-bar-fill {height:100%; border-radius:6px;
+            transition:width .4s ease;}
+          .hg-meta {color:#4b5563; font-size:.9rem; margin:4px 0;}
+          .hg-chips {margin-top:4px;}
+          .hg-muted {color:#9aa3b2; font-size:.8rem;}
+
+          /* Kartu temuan per port */
+          .hg-find {background:#fafbfd; border:1px solid #eef2f8;
+            border-radius:10px; padding:10px 14px; margin:8px 0;}
+          .hg-find-head {display:flex; align-items:center; gap:8px;
+            flex-wrap:wrap;}
+          .hg-port {font-weight:800; color:#0d1b3e; font-size:1rem;
+            font-family:'Consolas',monospace;}
+          .hg-note {color:#4b5563; font-size:.9rem; margin:6px 0;}
+          .hg-banner {background:#0d1b3e; color:#6fe39f; padding:8px 12px;
+            border-radius:8px; font-family:'Consolas',monospace;
+            font-size:.84rem; margin:6px 0; white-space:pre-wrap;
+            word-break:break-all;}
+          .hg-reco {color:#15824a; font-size:.86rem; font-weight:600;
+            margin-top:6px;}
+
+          /* Baris statistik ringkasan */
+          .hg-stats {display:flex; gap:14px; margin:4px 0 16px;}
+          .hg-stat {flex:1; background:#fff; border:1px solid #e6ebf2;
+            border-radius:14px; padding:14px 18px;
+            box-shadow:0 2px 8px rgba(13,27,62,.05);}
+          .hg-stat-label {color:#6b7280; font-size:.85rem; font-weight:600;}
+          .hg-stat-val {font-size:2rem; font-weight:800; color:#0d1b3e;
+            line-height:1.1;}
         </style>
         """,
         unsafe_allow_html=True,
@@ -269,10 +368,38 @@ def main() -> None:
     with kolom_kiri:
         if laporan:
             ring = laporan["ringkasan"]
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Total host", ring["total_host"])
-            c2.metric("Host berisiko", ring["host_berisiko"])
-            c3.metric("Skor tertinggi", ring["skor_tertinggi"])
+            skor_max = ring["skor_tertinggi"]
+            # Tentukan warna skor tertinggi sesuai ambang severity.
+            if skor_max >= 90:
+                warna_skor = WARNA_SEVERITY["KRITIS"]
+            elif skor_max >= 75:
+                warna_skor = WARNA_SEVERITY["TINGGI"]
+            elif skor_max >= 50:
+                warna_skor = WARNA_SEVERITY["SEDANG"]
+            elif skor_max >= 25:
+                warna_skor = WARNA_SEVERITY["RENDAH"]
+            else:
+                warna_skor = WARNA_SEVERITY["AMAN"]
+            st.markdown(
+                f"""
+                <div class="hg-stats">
+                  <div class="hg-stat">
+                    <div class="hg-stat-label">Total host</div>
+                    <div class="hg-stat-val">{ring['total_host']}</div>
+                  </div>
+                  <div class="hg-stat">
+                    <div class="hg-stat-label">Host berisiko</div>
+                    <div class="hg-stat-val">{ring['host_berisiko']}</div>
+                  </div>
+                  <div class="hg-stat" style="border-top:3px solid {warna_skor}">
+                    <div class="hg-stat-label">Skor tertinggi</div>
+                    <div class="hg-stat-val" style="color:{warna_skor}">
+                      {skor_max}</div>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
             unduh1, unduh2 = st.columns(2)
             unduh1.download_button(
