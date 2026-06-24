@@ -62,6 +62,19 @@ bahwa rata-rata rumah tangga yang terkoneksi memiliki lebih dari 20 perangkat
 IoT, namun kurang dari 15\% pengguna yang pernah melakukan pemeriksaan keamanan
 terhadap jaringan rumahnya.
 
+Kesenjangan antara kompleksitas ancaman dan kapabilitas pengguna ini
+menciptakan sebuah paradoks keamanan: perangkat IoT yang rentan terus
+beroperasi bukan karena penggunanya tidak peduli, melainkan karena mereka tidak
+memiliki visibilitas terhadap kondisi keamanan jaringan mereka sendiri.
+Pengguna rumahan tidak mengetahui bahwa kamera IP mereka masih membuka port
+Telnet dengan kredensial bawaan pabrik, atau bahwa router mereka menjalankan
+firmware yang telah usang bertahun-tahun. Ketidaktahuan ini bukan kesalahan
+pengguna --- melainkan akibat dari absennya alat yang mampu menjembatani
+kompleksitas teknis keamanan jaringan dengan kemampuan pemahaman pengguna
+non-teknis. HomeGuard dirancang sebagai jembatan tersebut: sebuah pemindai yang
+tidak hanya mendeteksi kerentanan, tetapi menerjemahkannya ke dalam bahasa yang
+dapat dipahami dan ditindaklanjuti oleh pengguna awam.
+
 Kesenjangan ini menimbulkan urgensi untuk mengembangkan solusi pemindaian
 keamanan jaringan yang mudah digunakan (user-friendly) oleh pengguna
 non-teknis. Hafeez \textit{et al.}~\cite{b4} mendemonstrasikan bahwa deteksi
@@ -99,15 +112,24 @@ kerentanan.
     terdapat pada perangkat IoT dalam jaringan Wi-Fi domestik berdasarkan
     standar OWASP IoT Top 10.
     \item Mengevaluasi efektivitas aplikasi yang dikembangkan dalam mendeteksi
-    kerentanan keamanan pada perangkat IoT melalui serangkaian pengujian pada
-    lingkungan jaringan rumah yang sebenarnya (real-world testing).
+    kerentanan keamanan pada perangkat IoT melalui pengujian unit terhadap 36
+    kasus uji dan pengujian fungsional pada lingkungan jaringan yang
+    terkontrol, sebagai bukti empiris kelayakan pendekatan integrasi yang
+    diusulkan.
 \end{enumerate}
 
 \subsection{Manfaat Penelitian}
-\textbf{Manfaat Praktis:} Menyediakan sebuah tools pemindai keamanan jaringan
-yang open-source, mudah digunakan, dan dapat dioperasikan oleh pengguna rumahan
-tanpa memerlukan keahlian teknis mendalam untuk mengaudit keamanan jaringan
-Wi-Fi dan perangkat IoT miliknya.
+\textbf{Manfaat Praktis:} Menyediakan sebuah perkakas pemindai keamanan
+jaringan yang open-source, beroperasi lokal tanpa mengirim data ke cloud, dan
+dapat dioperasikan oleh pengguna rumahan tanpa keahlian teknis mendalam.
+Berbeda dari perkakas profesional yang menghasilkan keluaran teknis mentah,
+HomeGuard berperan sebagai \textit{educator} bagi pengguna awam melalui tiga
+mekanisme: (1) menerjemahkan temuan teknis ke dalam skor risiko intuitif
+(0--100) dan tingkat keparahan yang mudah dipahami; (2) menyertakan rekomendasi
+mitigasi \textit{actionable} dalam Bahasa Indonesia untuk setiap temuan; dan
+(3) menyajikan referensi OWASP IoT Top 10 secara kontekstual sehingga pengguna
+tidak hanya mengetahui bahwa perangkat mereka rentan, tetapi juga memahami
+mengapa hal tersebut berbahaya dan langkah konkret apa yang dapat diambil.
 
 \textbf{Manfaat Akademis:} Berkontribusi pada literatur akademik di bidang
 keamanan IoT domestik dengan menyajikan bukti empiris mengenai lanskap
@@ -129,4 +151,8 @@ Top 10.
     versi 2018~\cite{b9}.
     \item Antarmuka pengguna dikembangkan berbasis web menggunakan framework
     Streamlit.
+    \item Hasil pengujian tidak dimaksudkan untuk generalisasi statistik
+    terhadap seluruh jaringan Wi-Fi domestik, melainkan sebagai bukti konsep
+    (proof-of-concept) yang mendemonstrasikan kemampuan aplikasi dalam
+    mendeteksi kerentanan pada skenario jaringan rumah yang representatif.
 \end{enumerate}
