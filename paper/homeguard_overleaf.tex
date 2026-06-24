@@ -238,7 +238,7 @@ Top 10.
 \end{enumerate}
 
 % =====================================================================
-% Bab II — Tinjauan Pustaka
+% Bab II
 \section{Tinjauan Pustaka}
 
 \subsection{Internet of Things (IoT) dan Ekosistem Smart Home}
@@ -559,7 +559,7 @@ pemindaiannya semata --- yang menjadi kebaruan dan justifikasi keberadaan
 HomeGuard.
 
 % =====================================================================
-% Bab III–VI
+% Bab III-VI
 \section{Metodologi Penelitian}
 
 \subsection{Pendekatan Penelitian}
@@ -919,24 +919,29 @@ mengonfirmasi bahwa mekanisme deteksi komponen usang dan eskalasi
 \textit{severity} berfungsi sesuai rancangan.
 
 \subsection{Pengujian pada Jaringan Rumah}
-Pengujian dunia nyata dilakukan pada jaringan Wi-Fi rumah peneliti.
-Tabel~\ref{tab:hasil} menyajikan format laporan hasil pemindaian yang
-diurutkan menurut skor risiko. \textit{(Catatan: isi baris pada tabel ini
-diisi dengan data perangkat IoT aktual hasil pengujian peneliti.)}
+Pengujian dunia nyata dilakukan pada jaringan Wi-Fi rumah peneliti terhadap
+kedelapan perangkat pada Tabel~\ref{tab:perangkat}. Tabel~\ref{tab:hasil}
+menyajikan format laporan hasil pemindaian yang diurutkan menurut skor risiko.
+\textit{(Catatan: nilai pada tabel ini merupakan template ilustratif dan wajib
+diganti dengan data perangkat IoT aktual hasil pengujian peneliti.)}
 
 \begin{table}[ht]
     \centering
-    \caption{Contoh Format Hasil Pemindaian Jaringan Rumah}
+    \caption{Format Hasil Pemindaian Jaringan Rumah (8 Perangkat)}
     \label{tab:hasil}
     \begin{tabular}{|l|l|l|c|c|}
         \hline
-        \textbf{IP} & \textbf{Vendor} & \textbf{OWASP} &
+        \textbf{Perangkat} & \textbf{Vendor} & \textbf{OWASP} &
         \textbf{Severity} & \textbf{Skor} \\
         \hline
-        192.168.1.10 & \textit{(kamera IP)} & I1,I2,I7 & KRITIS & 96 \\
-        192.168.1.20 & \textit{(smart TV)} & I3,I7 & TINGGI & 78 \\
-        192.168.1.30 & \textit{(smart plug)} & I2 & SEDANG & 53 \\
-        \dots & \dots & \dots & \dots & \dots \\
+        \textit{Kamera IP} & \textit{(isi)} & I1,I2,I7 & KRITIS & \textit{--} \\
+        \textit{Router} & \textit{(isi)} & I2,I3 & TINGGI & \textit{--} \\
+        \textit{Smart TV} & \textit{(isi)} & I3,I7 & TINGGI & \textit{--} \\
+        \textit{Printer jaringan} & \textit{(isi)} & I2 & SEDANG & \textit{--} \\
+        \textit{Smart plug} & \textit{(isi)} & I2 & SEDANG & \textit{--} \\
+        \textit{Smart speaker} & \textit{(isi)} & I2 & SEDANG & \textit{--} \\
+        \textit{Single-board comp.} & \textit{(isi)} & I2 & RENDAH & \textit{--} \\
+        \textit{Laptop pengguna} & \textit{(isi)} & --- & AMAN & 0 \\
         \hline
     \end{tabular}
 \end{table}
