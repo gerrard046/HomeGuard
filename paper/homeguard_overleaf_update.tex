@@ -1,0 +1,631 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{makecell}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Pengembangan Aplikasi Pemindai Keamanan Jaringan Rumah untuk Identifikasi Kerentanan Perangkat IoT pada Jaringan Wi-Fi Domestik}
+
+\author{
+\IEEEauthorblockN{Raffelino Hizkia Marbun, Reiza Gerrard Rizki Ramadhan, Retta Kresensia}
+\IEEEauthorblockA{
+    \textit{Program Studi Keamanan Siber / Rekayasa Keamanan Siber} \\
+    \textit{Politeknik Siber dan Sandi Negara} \\
+    Bogor, Indonesia \\
+    raffelino.hizkia@poltekssn.ac.id, reiza.gerrard@poltekssn.ac.id, retta.kresensia@poltekssn.ac.id
+}
+}
+
+\maketitle
+
+\begin{abstract}
+Pertumbuhan pesat perangkat Internet of Things (IoT) pada lingkungan rumah tangga telah menciptakan permukaan serangan (\textit{attack surface}) baru yang signifikan dalam ekosistem jaringan domestik. Perangkat seperti \textit{smart TV}, kamera pengintai (CCTV), \textit{smart plug}, dan asisten virtual yang terhubung ke jaringan Wi-Fi rumah kerap memiliki kerentanan keamanan yang tidak disadari oleh penggunanya. Penelitian ini bertujuan untuk merancang dan mengimplementasikan sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mampu mengidentifikasi kerentanan perangkat IoT pada jaringan Wi-Fi domestik. Aplikasi yang dikembangkan, bernama HomeGuard, mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi tipe perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (opsional dan \textit{opt-in}), serta pemetaan kerentanan berdasarkan kerangka acuan OWASP IoT Top 10, dilengkapi pelaporan dalam format JSON dan PDF. Metode penelitian yang digunakan adalah \textit{Research and Development} (R\&D) dengan pendekatan \textit{prototyping}. Pengujian dilakukan pada jaringan Wi-Fi rumah milik peneliti dengan delapan perangkat IoT yang terhubung, didukung oleh 36 kasus pengujian unit yang seluruhnya lulus. Hasil penelitian menunjukkan bahwa aplikasi yang dikembangkan mampu mengidentifikasi kerentanan keamanan pada perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable} bagi pengguna rumahan. Penelitian ini berkontribusi pada upaya peningkatan kesadaran dan kapabilitas keamanan siber di tingkat rumah tangga.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Keamanan Jaringan, Internet of Things, Pemindai Kerentanan, Smart Home, OWASP IoT Top 10, Jaringan Wi-Fi Domestik
+\end{IEEEkeywords}
+
+% =========================================================
+\section{Pendahuluan}
+% =========================================================
+
+\subsection{Latar Belakang}
+
+Perkembangan teknologi Internet of Things (IoT) telah mentransformasi paradigma kehidupan rumah tangga modern secara fundamental. Atzori et al.\ \cite{atzori2010} mendefinisikan IoT sebagai sebuah paradigma di mana objek-objek fisik dilengkapi dengan kemampuan komputasi, konektivitas jaringan, dan kapasitas pertukaran data, sehingga memungkinkan interaksi dan kolaborasi antarobjek tanpa intervensi manusia secara langsung. Menurut laporan International Telecommunication Union (ITU)\ \cite{itu2024}, jumlah perangkat IoT yang terhubung secara global telah melampaui 15 miliar unit pada tahun 2024, dengan proyeksi mencapai 25 miliar unit pada tahun 2030. Pertumbuhan ini didorong oleh meningkatnya adopsi ekosistem \textit{smart home} yang mencakup perangkat seperti \textit{smart TV}, kamera pengintai berbasis IP (CCTV), \textit{smart speaker}, \textit{smart plug}, \textit{smart lock}, dan sensor lingkungan yang kesemuanya terhubung melalui jaringan Wi-Fi domestik.
+
+Al-Fuqaha et al.\ \cite{alfuqaha2015} dalam survei komprehensifnya mengidentifikasi bahwa ekosistem IoT bergantung pada beragam protokol komunikasi seperti MQTT (\textit{Message Queuing Telemetry Transport}), CoAP (\textit{Constrained Application Protocol}), Zigbee, Z-Wave, dan Bluetooth Low Energy (BLE), yang masing-masing memiliki karakteristik keamanan yang berbeda-beda. Keragaman protokol ini, meskipun memberikan fleksibilitas dalam implementasi, menciptakan kompleksitas tersendiri dalam pengelolaan keamanan jaringan rumah tangga.
+
+Seiring dengan meningkatnya adopsi perangkat IoT di lingkungan domestik, ancaman keamanan siber terhadap jaringan rumah tangga turut mengalami eskalasi yang signifikan. Salah satu insiden keamanan IoT paling menonjol dalam sejarah adalah serangan Mirai Botnet pada tahun 2016. Antonakakis et al.\ \cite{antonakakis2017} mengungkapkan bahwa Mirai berhasil menginfeksi lebih dari 600.000 perangkat IoT --- termasuk kamera IP, router, dan Digital Video Recorder (DVR) --- dengan mengeksploitasi \textit{default credentials} yang tidak diubah oleh penggunanya. Perangkat-perangkat yang terinfeksi tersebut kemudian digunakan untuk melancarkan serangan \textit{Distributed Denial of Service} (DDoS) masif yang melumpuhkan layanan internet berskala besar seperti Dyn DNS, Twitter, Netflix, dan Reddit. Kolias et al.\ \cite{kolias2017} menegaskan bahwa insiden Mirai menjadi titik balik yang mengekspos kerentanan fundamental pada ekosistem IoT, khususnya terkait penggunaan kata sandi bawaan pabrik (\textit{factory default passwords}) dan layanan jaringan yang tidak diamankan.
+
+Neshenko et al.\ \cite{neshenko2019} dalam survei ekstensif yang dipublikasikan pada IEEE Communications Surveys and Tutorials mengidentifikasi bahwa kerentanan pada perangkat IoT dapat dikategorikan ke dalam empat lapisan utama: lapisan perangkat, lapisan jaringan, lapisan \textit{cloud}, dan lapisan kecerdasan buatan. Temuan empiris mereka menunjukkan bahwa sebagian besar eksploitasi IoT berskala internet menargetkan kerentanan pada lapisan jaringan, seperti port terbuka yang tidak diperlukan, protokol komunikasi yang tidak terenkripsi, dan mekanisme autentikasi yang lemah.
+
+Di sisi lain, penelitian Alrawi et al.\ \cite{alrawi2019} yang dipresentasikan pada IEEE Symposium on Security and Privacy menyoroti kesenjangan kritis antara kompleksitas ancaman keamanan IoT dan kapabilitas teknis pengguna rumahan. Evaluasi sistematis mereka mengungkapkan bahwa mayoritas pengguna tidak memiliki pengetahuan, peralatan, maupun kesadaran yang memadai untuk mengidentifikasi dan memitigasi kerentanan pada perangkat IoT di jaringan rumah mereka. Temuan ini diperkuat oleh laporan Bitdefender\ \cite{bitdefender2024} yang mencatat bahwa rata-rata rumah tangga yang terkoneksi memiliki lebih dari 20 perangkat IoT, namun kurang dari 15\% pengguna yang pernah melakukan pemeriksaan keamanan terhadap jaringan rumahnya.
+
+Kesenjangan ini menimbulkan urgensi untuk mengembangkan solusi pemindaian keamanan jaringan yang mudah digunakan (\textit{user-friendly}) oleh pengguna non-teknis. Hafeez et al.\ \cite{hafeez2020} mendemonstrasikan bahwa deteksi ancaman pada tingkat jaringan (\textit{network-level detection}) merupakan pendekatan yang paling efektif dan \textit{non-intrusive} untuk mengidentifikasi aktivitas berbahaya pada perangkat IoT, tanpa memerlukan modifikasi pada perangkat itu sendiri. Pendekatan ini menjadi landasan konseptual bagi pengembangan aplikasi pemindai keamanan jaringan rumah dalam penelitian ini.
+
+Berdasarkan uraian latar belakang di atas, penelitian ini mengusulkan pengembangan sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang diberi nama HomeGuard. Aplikasi ini dirancang untuk mengidentifikasi kerentanan perangkat IoT pada jaringan Wi-Fi domestik dengan mengacu pada kerangka kerja OWASP IoT Top 10\ \cite{owasp2018} sebagai standar klasifikasi kerentanan.
+
+\subsection{Rumusan Masalah}
+
+Berdasarkan latar belakang yang telah diuraikan, rumusan masalah dalam penelitian ini adalah sebagai berikut:
+\begin{enumerate}
+    \item Bagaimana merancang dan mengimplementasikan aplikasi pemindai keamanan jaringan rumah yang mampu mengidentifikasi kerentanan perangkat IoT pada jaringan Wi-Fi domestik?
+    \item Apa saja jenis kerentanan yang paling umum ditemukan pada perangkat IoT dalam jaringan Wi-Fi domestik berdasarkan kerangka acuan OWASP IoT Top 10?
+    \item Bagaimana efektivitas aplikasi yang dikembangkan dalam mendeteksi kerentanan keamanan pada perangkat IoT di lingkungan jaringan rumah?
+\end{enumerate}
+
+\subsection{Tujuan Penelitian}
+
+Tujuan dari penelitian ini adalah:
+\begin{enumerate}
+    \item Merancang dan membangun aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, dan pemetaan kerentanan.
+    \item Mengidentifikasi dan mengklasifikasikan jenis-jenis kerentanan yang terdapat pada perangkat IoT dalam jaringan Wi-Fi domestik berdasarkan standar OWASP IoT Top 10.
+    \item Mengevaluasi efektivitas aplikasi yang dikembangkan dalam mendeteksi kerentanan keamanan pada perangkat IoT melalui serangkaian pengujian pada lingkungan jaringan rumah yang sebenarnya (\textit{real-world testing}).
+\end{enumerate}
+
+\subsection{Manfaat Penelitian}
+
+\textbf{Manfaat Praktis:} Menyediakan sebuah \textit{tools} pemindai keamanan jaringan yang \textit{open-source}, mudah digunakan, dan dapat dioperasikan oleh pengguna rumahan tanpa memerlukan keahlian teknis mendalam untuk mengaudit keamanan jaringan Wi-Fi dan perangkat IoT miliknya.
+
+\textbf{Manfaat Akademis:} Berkontribusi pada literatur akademik di bidang keamanan IoT domestik dengan menyajikan bukti empiris mengenai lanskap kerentanan perangkat IoT pada jaringan rumah tangga di Indonesia, serta menawarkan pendekatan sistematis untuk penilaian risiko berbasis OWASP IoT Top 10.
+
+\subsection{Batasan Masalah}
+
+\begin{enumerate}
+    \item Pengujian dilakukan secara eksklusif pada jaringan Wi-Fi rumah milik peneliti sendiri, sesuai dengan prinsip etika keamanan siber dan ketentuan hukum yang berlaku.
+    \item Pemindaian berfokus pada analisis tingkat jaringan (\textit{network-level analysis}), mencakup \textit{host discovery}, \textit{port scanning}, dan \textit{service detection}, tanpa melakukan analisis firmware perangkat.
+    \item Aplikasi dirancang sebagai \textit{non-intrusive scanner} yang tidak melakukan eksploitasi aktif (\textit{active exploitation}) terhadap kerentanan yang ditemukan. Pemeriksaan kredensial bawaan bersifat opsional, \textit{opt-in}, dan terbatas pada verifikasi non-destruktif atas jaringan milik sendiri.
+    \item Klasifikasi kerentanan mengacu pada kerangka kerja OWASP IoT Top 10 versi 2018\ \cite{owasp2018}.
+    \item Antarmuka pengguna dikembangkan berbasis web menggunakan framework Streamlit.
+    \item Pengujian dunia nyata dibatasi pada 8 unit perangkat IoT yang tersedia di lingkungan rumah peneliti (lihat Tabel\ \ref{tab:device_list}).
+\end{enumerate}
+
+% =========================================================
+\section{Tinjauan Pustaka}
+% =========================================================
+
+\subsection{Internet of Things (IoT) dan Ekosistem Smart Home}
+
+Konsep Internet of Things (IoT) pertama kali dipopulerkan oleh Kevin Ashton pada tahun 1999 dalam konteks manajemen rantai pasok. Definisi yang lebih komprehensif dikemukakan oleh Atzori et al.\ \cite{atzori2010}, yang mendeskripsikan IoT sebagai sebuah paradigma teknologi di mana objek-objek fisik di dunia nyata --- yang dilengkapi dengan sensor, aktuator, dan kapabilitas komunikasi --- saling terhubung melalui jaringan internet untuk mengumpulkan, bertukar, dan memproses data secara otonom.
+
+Dalam konteks rumah tangga, IoT diwujudkan melalui ekosistem \textit{smart home} yang mengintegrasikan berbagai perangkat cerdas ke dalam satu jaringan domestik. Al-Fuqaha et al.\ \cite{alfuqaha2015} mengklasifikasikan arsitektur komunikasi IoT ke dalam beberapa lapisan: lapisan persepsi (sensor dan aktuator); lapisan jaringan yang menangani transmisi data melalui protokol seperti Wi-Fi (IEEE 802.11), Zigbee (IEEE 802.15.4), Z-Wave, BLE, dan LoRaWAN; lapisan \textit{middleware}; serta lapisan aplikasi.
+
+Berdasarkan data ITU\ \cite{itu2024}, penetrasi perangkat IoT di rumah tangga meningkat rata-rata 23\% per tahun dalam periode 2020--2024. Setiap perangkat berjalan dengan sistem operasi dan firmware yang bervariasi, menggunakan protokol komunikasi yang heterogen, dan memiliki tingkat keamanan yang tidak seragam --- menciptakan permukaan serangan yang luas dan kompleks.
+
+\subsection{Ancaman dan Kerentanan Keamanan pada Perangkat IoT}
+
+\subsubsection{Taksonomi Ancaman Keamanan IoT}
+
+Neshenko et al.\ \cite{neshenko2019} menyajikan taksonomi ancaman keamanan IoT yang komprehensif melalui survei terhadap lebih dari 200 literatur akademik, mengkategorikan ancaman ke dalam empat lapisan utama:
+
+\begin{itemize}
+    \item \textbf{Lapisan Perangkat:} kerentanan pada firmware, hardware (\textit{debug interface} seperti JTAG dan UART), serta konfigurasi bawaan pabrik yang tidak aman.
+    \item \textbf{Lapisan Jaringan:} serangan \textit{Man-in-the-Middle} (MitM), \textit{packet sniffing}, \textit{denial of service} (DoS), dan eksploitasi terhadap port dan layanan jaringan yang rentan.
+    \item \textbf{Lapisan Cloud:} kerentanan pada \textit{backend services}, API yang tidak aman, dan penyimpanan data yang tidak terenkripsi.
+    \item \textbf{Lapisan Kecerdasan Buatan:} ancaman terhadap sistem deteksi berbasis \textit{machine learning} seperti \textit{adversarial attacks} dan \textit{model poisoning}.
+\end{itemize}
+
+Temuan empiris mereka menunjukkan bahwa 78\% eksploitasi IoT berskala internet menargetkan kerentanan pada lapisan jaringan, menjadikan analisis keamanan pada tingkat jaringan sebagai prioritas utama dalam perlindungan perangkat IoT domestik.
+
+\subsubsection{Kerangka Acuan OWASP IoT Top 10}
+
+Open Web Application Security Project (OWASP) menerbitkan IoT Top 10\ \cite{owasp2018} sebagai kerangka acuan yang mengidentifikasi sepuluh kategori kerentanan paling kritis pada ekosistem IoT, sebagaimana dirangkum pada Tabel\ \ref{tab:owasp_list}.
+
+\begin{table}[htbp]
+\caption{Kategori OWASP IoT Top 10 (2018)}
+\label{tab:owasp_list}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\columnwidth}{|c|X|}
+\hline
+\textbf{Kode} & \textbf{Kategori} \\
+\hline
+I1 & Weak, Guessable, or Hardcoded Passwords \\
+\hline
+I2 & Insecure Network Services \\
+\hline
+I3 & Insecure Ecosystem Interfaces \\
+\hline
+I4 & Lack of Secure Update Mechanism \\
+\hline
+I5 & Use of Insecure or Outdated Components \\
+\hline
+I6 & Insufficient Privacy Protection \\
+\hline
+I7 & Insecure Data Transfer and Storage \\
+\hline
+I8 & Lack of Device Management \\
+\hline
+I9 & Insecure Default Settings \\
+\hline
+I10 & Lack of Physical Hardening \\
+\hline
+\end{tabularx}
+\end{table}
+
+Dalam penelitian ini, OWASP IoT Top 10 digunakan sebagai basis pemetaan kerentanan yang terdeteksi oleh aplikasi pemindai terhadap kategori-kategori risiko yang terstandarisasi.
+
+\subsubsection{Studi Kasus: Mirai Botnet}
+
+Antonakakis et al.\ \cite{antonakakis2017} menyajikan analisis teknis yang mengungkapkan mekanisme infeksi Mirai: botnet ini secara sistematis memindai ruang alamat IPv4 untuk menemukan perangkat IoT dengan layanan Telnet (port 23 dan 2323) yang terbuka, kemudian mencoba masuk menggunakan daftar 62 kombinasi \textit{username} dan \textit{password} bawaan pabrik yang \textit{di-hardcode}. Kolias et al.\ \cite{kolias2017} mengelaborasi bahwa serangan DDoS terhadap penyedia DNS Dyn pada Oktober 2016 menghasilkan volume lalu lintas hingga 1,2 Tbps. Meidan et al.\ \cite{meidan2018} mengusulkan pendekatan deteksi botnet IoT berbasis \textit{deep autoencoder} (N-BaIoT) yang mendeteksi aktivitas Mirai dan BASHLITE dengan akurasi di atas 99\%.
+
+\subsubsection{Kerentanan Protokol Wi-Fi}
+
+Vanhoef dan Piessens\ \cite{vanhoef2017} menemukan kerentanan fundamental pada protokol WPA2 yang dinamakan \textit{Key Reinstallation Attack} (KRACK), yang mengeksploitasi kelemahan dalam mekanisme \textit{four-way handshake}. Sebagai respons, Wi-Fi Alliance merilis WPA3; namun Vanhoef dan Ronen\ \cite{vanhoef2020} dalam penelitian \textit{Dragonblood} mengungkapkan bahwa implementasi awal \textit{handshake Dragonfly} pada WPA3 rentan terhadap serangan \textit{side-channel} dan \textit{downgrade}.
+
+\subsection{Teknik Pemindaian dan Deteksi Kerentanan Jaringan}
+
+\subsubsection{Prinsip Network Scanning}
+
+Lyon\ \cite{lyon2009} menjelaskan bahwa pemindaian jaringan umumnya terdiri atas: (a) \textit{Host Discovery} --- identifikasi host aktif, umumnya menggunakan ARP scanning, ICMP echo request, atau TCP SYN/ACK probing; (b) \textit{Port Scanning} --- pemeriksaan status port melalui TCP SYN scan, TCP connect scan, dan UDP scan; (c) \textit{Service Detection} --- identifikasi layanan dan versi melalui \textit{banner grabbing}; serta (d) \textit{OS Detection}. Nmap merupakan \textit{tools} pemindai jaringan yang paling banyak digunakan\ \cite{lyon2009}, dan dalam penelitian ini Nmap diintegrasikan secara opsional untuk memperkaya hasil pemindaian.
+
+\subsubsection{Device Fingerprinting pada Perangkat IoT}
+
+Sivanathan et al.\ \cite{sivanathan2019} mengembangkan metode klasifikasi perangkat IoT berbasis karakteristik lalu lintas jaringan dan berhasil mengklasifikasikan 28 jenis perangkat dengan akurasi mencapai 99,88\% menggunakan Random Forest. Dalam konteks aplikasi pemindai keamanan rumah, teknik \textit{fingerprinting} disederhanakan menjadi identifikasi berbasis MAC address (\textit{vendor lookup} via OUI) dikombinasikan dengan heuristik pola port dan layanan yang terdeteksi.
+
+\subsubsection{Metodologi Vulnerability Assessment}
+
+Weidman\ \cite{weidman2014} membedakan pendekatan aktif dan pasif dalam penilaian kerentanan. Dalam konteks pemindaian jaringan rumah, pendekatan semi-aktif --- mencakup pemindaian port dan deteksi layanan tanpa eksploitasi --- merupakan kompromi yang tepat antara kedalaman analisis dan keselamatan operasional. Shah dan Issac\ \cite{shah2018} menyimpulkan bahwa integrasi pendekatan berbasis aturan (\textit{rule-based}) dengan \textit{machine learning} menghasilkan akurasi deteksi yang optimal.
+
+\subsection{Kerangka Kerja Keamanan IoT}
+
+\subsubsection{NIST Foundational Cybersecurity Activities for IoT}
+
+NIST melalui dokumen NISTIR 8259\ \cite{nist2020} menetapkan enam aktivitas fundamental keamanan siber untuk perangkat IoT. HomeGuard difokuskan untuk memfasilitasi dua aktivitas yang paling relevan bagi pengguna rumahan, yaitu identifikasi aset (melalui \textit{network discovery} dan \textit{device profiling}) dan deteksi kerentanan (melalui \textit{port scanning}, \textit{service detection}, dan pemetaan OWASP IoT Top 10).
+
+\subsubsection{Defense-in-Depth untuk Jaringan Rumah}
+
+Sicari et al.\ \cite{sicari2015} mengemukakan bahwa keamanan IoT harus diterapkan melalui pendekatan berlapis (\textit{defense-in-depth}). Dalam kerangka ini, aplikasi pemindai keamanan jaringan berperan sebagai komponen ``deteksi'' pada lapisan jaringan, yang memberikan visibilitas kepada pengguna mengenai kondisi keamanan jaringan dan perangkat IoT yang terhubung.
+
+\subsubsection{Arsitektur Zero Trust untuk IoT}
+
+Rose et al.\ \cite{rose2020} memperkenalkan konsep \textit{Zero Trust Architecture} (ZTA) dengan prinsip \textit{``never trust, always verify''}. Penerapannya pada jaringan rumah mengimplikasikan bahwa setiap perangkat IoT harus diperlakukan sebagai entitas yang berpotensi tidak tepercaya, sehingga visibilitas menyeluruh --- yang difasilitasi oleh \textit{tools} pemindai --- menjadi prasyarat fundamental.
+
+\subsection{Penelitian Terdahulu yang Relevan}
+
+Beberapa penelitian terdahulu telah mengeksplorasi keamanan IoT rumah tangga. Alrawi et al.\ \cite{alrawi2019} melakukan evaluasi sistematis (SoK) namun tidak menyertakan \textit{tools} automasi untuk pengguna akhir. Hafeez et al.\ \cite{hafeez2020} mengembangkan IoT-KEEPER untuk \textit{continuous monitoring} di \textit{edge}, yang kurang praktis untuk pemindaian \textit{ad-hoc}. Acar et al.\ \cite{acar2020} (Peek-a-Boo) menyoroti risiko privasi pada lalu lintas terenkripsi. Hamza et al.\ \cite{hamza2020} mengusulkan deteksi berbasis MUD + SDN yang bergantung pada ketersediaan profil MUD.
+
+Tabel\ \ref{tab:terdahulu} menyajikan perbandingan posisi penelitian ini.
+
+\begin{table}[htbp]
+\caption{Perbandingan Penelitian Terdahulu}
+\label{tab:terdahulu}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\columnwidth}{|c|l|c|X|X|}
+\hline
+\textbf{No} & \textbf{Peneliti} & \textbf{Tahun} & \textbf{Fokus Utama} & \textbf{Perbedaan} \\
+\hline
+1 & Antonakakis et al.\ \cite{antonakakis2017} & 2017 & Mekanisme infeksi Mirai & Fokus post-incident \\
+\hline
+2 & Alrawi et al.\ \cite{alrawi2019} & 2019 & Keamanan IoT rumah (4 dimensi) & Tanpa tools automasi \\
+\hline
+3 & Hafeez et al.\ \cite{hafeez2020} & 2020 & Deteksi anomali di edge & Continuous monitoring \\
+\hline
+4 & Sivanathan et al.\ \cite{sivanathan2019} & 2019 & Klasifikasi perangkat IoT & Fokus identifikasi \\
+\hline
+5 & Acar et al.\ \cite{acar2020} & 2020 & Inferensi aktivitas smart home & Fokus privasi \\
+\hline
+6 & Hamza et al.\ \cite{hamza2020} & 2020 & Deteksi serangan volumetrik & Bergantung profil MUD \\
+\hline
+7 & Meidan et al.\ \cite{meidan2018} & 2018 & Deteksi botnet IoT & ML-based \\
+\hline
+8 & \textbf{Penelitian ini} & \textbf{2025} & \textbf{End-user scanner} & \textbf{GUI + OWASP IoT Top 10} \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Diferensiasi terhadap Alat yang Sudah Tersedia}
+
+Patut diakui bahwa telah tersedia beragam perangkat pemindai jaringan, baik komersial maupun \textit{open-source}. Namun, alat-alat tersebut secara umum berada pada salah satu dari dua kutub yang keduanya tidak sepenuhnya menjawab kebutuhan pengguna rumahan non-teknis dalam konteks penilaian kerentanan IoT yang terstandarisasi.
+
+Pada kutub perkakas profesional, Nmap, Nessus, dan OpenVAS merupakan pemindai yang sangat kuat namun ditujukan bagi praktisi keamanan. Perkakas ini memiliki kurva belajar yang curam, keluarannya bersifat teknis, berorientasi umum (bukan spesifik IoT rumah), serta tidak memetakan temuan ke taksonomi kerentanan khusus IoT seperti OWASP IoT Top 10.
+
+Pada kutub aplikasi konsumen, perkakas seperti Fing dan Bitdefender Home Scanner mudah digunakan, tetapi umumnya bersifat \textit{closed-source}, berbasis \textit{cloud} sehingga metadata jaringan rumah dikirim ke server pihak ketiga, serta menyajikan hasil sebagai label keamanan umum tanpa pemetaan eksplisit ke kerangka akademik yang dapat dipertanggungjawabkan.
+
+Kontribusi HomeGuard bukan terletak pada penemuan teknik pemindaian baru, melainkan pada integrasi dan pemosisian yang mengisi celah berikut:
+
+\begin{enumerate}
+    \item \textbf{Pemetaan eksplisit ke OWASP IoT Top 10 (2018)}, disertai skor risiko dan rekomendasi mitigasi yang \textit{actionable}.
+    \item \textbf{Transparan dan dapat diaudit} sebagai \textit{open-source} dengan basis aturan terbuka.
+    \item \textbf{Privasi dan operasi lokal sepenuhnya} tanpa mengirim data ke \textit{cloud}.
+    \item \textbf{Ringan dan portabel}, hanya memakai pustaka standar Python tanpa hak akses \textit{root}.
+    \item \textbf{Berorientasi edukasi dan konteks lokal} dalam Bahasa Indonesia.
+\end{enumerate}
+
+Tabel\ \ref{tab:diferensiasi} membandingkan HomeGuard dengan representasi alat pada kedua kutub di atas.
+
+\begin{table}[htbp]
+\caption{Diferensiasi HomeGuard terhadap Alat Sejenis}
+\label{tab:diferensiasi}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Kriteria} & \textbf{Nmap} & \makecell{\textbf{Nessus/}\\\textbf{OpenVAS}} & \textbf{Fing} & \makecell{\textbf{Bitdef.}\\\textbf{Scan}} & \textbf{HomeGuard} \\
+\hline
+Open-source & Ya & Sebagian & Tidak & Tidak & \textbf{Ya} \\
+\hline
+Target awam & Tidak & Tidak & Ya & Ya & \textbf{Ya} \\
+\hline
+OWASP map. & Tidak & Tidak & Tidak & Tidak & \textbf{Ya} \\
+\hline
+Lokal/no cloud & Ya & Ya & Tidak & Tidak & \textbf{Ya} \\
+\hline
+Tanpa root & Tidak & Tidak & Ya & Ya & \textbf{Ya} \\
+\hline
+Edukasi lokal & Tidak & Tidak & Tidak & Tidak & \textbf{Ya} \\
+\hline
+\end{tabular}
+\end{table}
+
+Singkatnya, tidak ada satu pun perkakas terdahulu yang secara simultan bersifat \textit{open-source}, ramah pengguna awam, beroperasi lokal demi privasi, ringan, sekaligus memetakan temuan ke OWASP IoT Top 10 dengan rekomendasi edukatif.
+
+% =========================================================
+\section{Metodologi Penelitian}
+% =========================================================
+
+\subsection{Pendekatan Penelitian}
+
+Penelitian ini menggunakan metode \textit{Research and Development} (R\&D) dengan pendekatan \textit{prototyping}. Metode R\&D dipilih karena luaran penelitian berupa produk perangkat lunak fungsional, yaitu aplikasi pemindai keamanan jaringan rumah HomeGuard, yang dikembangkan secara iteratif dan dievaluasi efektivitasnya.
+
+\subsection{Tahapan Penelitian}
+
+Pengembangan HomeGuard dilaksanakan melalui lima tahap berurutan:
+\begin{enumerate}
+    \item \textbf{Analisis Kebutuhan.} Identifikasi kebutuhan fungsional dan non-fungsional (portabilitas, kemudahan penggunaan, operasi \textit{non-intrusive} tanpa hak akses \textit{root}).
+    \item \textbf{Perancangan Arsitektur.} Perancangan arsitektur \textit{pipeline} inti empat tahap beserta modul analisis pelengkap dan basis pengetahuan statis (katalog port IoT, definisi OWASP IoT Top 10, basis data OUI).
+    \item \textbf{Implementasi.} Pengkodean modul menggunakan bahasa Python ($\geq$ 3.9), hanya memakai pustaka standar tanpa dependensi wajib.
+    \item \textbf{Pengujian.} Pengujian unit (\texttt{pytest}, 36 kasus uji) dan pengujian fungsional pada jaringan Wi-Fi rumah milik peneliti.
+    \item \textbf{Evaluasi.} Analisis hasil pemindaian untuk menilai kemampuan aplikasi dan rekomendasi mitigasi.
+\end{enumerate}
+
+\subsection{Alat dan Bahan}
+
+Implementasi memanfaatkan bahasa pemrograman Python beserta pustaka standarnya (\texttt{socket}, \texttt{ssl}, \texttt{ipaddress}, \texttt{subprocess}, \texttt{concurrent.futures}, dan \texttt{re}). Komponen opsional meliputi Streamlit untuk antarmuka web, \texttt{pytest} untuk pengujian, serta Nmap sebagai pemindai eksternal opsional.
+
+Pengujian dilaksanakan pada jaringan Wi-Fi domestik dengan delapan unit perangkat IoT sebagaimana dirinci pada Tabel\ \ref{tab:device_list}.
+
+\begin{table}[htbp]
+\caption{Daftar Perangkat IoT pada Lingkungan Pengujian}
+\label{tab:device_list}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\columnwidth}{|c|X|l|}
+\hline
+\textbf{No} & \textbf{Jenis Perangkat} & \textbf{Vendor} \\
+\hline
+1 & Kamera IP (CCTV) & Hikvision \\
+\hline
+2 & Smart TV & Samsung \\
+\hline
+3 & Smart Plug & TP-Link (Kasa) \\
+\hline
+4 & Router Wi-Fi (AP utama) & TP-Link \\
+\hline
+5 & Single-board computer & Raspberry Pi Foundation \\
+\hline
+6 & Smart Speaker & Google (Nest) \\
+\hline
+7 & Printer jaringan & Hewlett-Packard (HP) \\
+\hline
+8 & Laptop pengguna (kontrol) & Intel (NIC) \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Prinsip Etika Penelitian}
+
+Sesuai batasan masalah, seluruh pemindaian dilakukan secara eksklusif pada jaringan milik peneliti sendiri. Aplikasi dirancang sebagai \textit{non-intrusive scanner} yang melakukan pendekatan semi-aktif: pemindaian port dan deteksi layanan tanpa eksploitasi aktif terhadap kerentanan yang ditemukan. Pemeriksaan kredensial bawaan dinonaktifkan secara baku dan hanya berjalan bila pengguna mengaktifkannya secara eksplisit (\textit{opt-in}). Peringatan etika ditampilkan secara eksplisit pada antarmuka pengguna, dokumentasi, dan setiap laporan keluaran.
+
+% =========================================================
+\section{Perancangan dan Implementasi}
+% =========================================================
+
+\subsection{Arsitektur Sistem}
+
+HomeGuard mengadopsi arsitektur \textit{pipeline} inti yang terdiri atas empat tahap berurutan --- \textit{network discovery}, \textit{port scanning}, \textit{service detection}, dan pemetaan kerentanan --- di mana keluaran satu tahap menjadi masukan tahap berikutnya, sebagaimana diilustrasikan pada Gambar\ \ref{fig:arsitektur}. Pipeline inti tersebut dilengkapi modul analisis pelengkap (klasifikasi tipe perangkat, pemeriksaan TLS/HTTPS, dan pemeriksaan kredensial bawaan yang bersifat \textit{opt-in}) serta modul pelaporan yang menghasilkan keluaran JSON dan PDF.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{pipeline_arch.pdf}
+\caption{Arsitektur pipeline inti empat tahap HomeGuard beserta modul analisis pelengkap}
+\label{fig:arsitektur}
+\end{figure}
+
+Tanggung jawab masing-masing modul dirangkum pada Tabel\ \ref{tab:modul}.
+
+\begin{table}[htbp]
+\caption{Modul Penyusun Aplikasi HomeGuard}
+\label{tab:modul}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\columnwidth}{|l|l|X|}
+\hline
+\textbf{Modul} & \textbf{Berkas} & \textbf{Fungsi Utama} \\
+\hline
+Network Discovery & \texttt{discovery.py} & Penemuan host hidup via TCP ping, parsing tabel ARP, normalisasi MAC, vendor lookup (OUI), deteksi subnet otomatis, dan ekspansi CIDR. \\
+\hline
+Port Scanning & \texttt{portscan.py} & TCP connect scan paralel menggunakan thread pool. \\
+\hline
+Service Detection & \texttt{portscan.py} & Banner grabbing, deteksi layanan dan versi, integrasi Nmap opsional dengan fallback otomatis ke socket. \\
+\hline
+Vulnerability Mapping & \texttt{vulnmap.py} & Pemetaan ke OWASP IoT Top 10 dan perhitungan skor risiko (0--100). \\
+\hline
+Klasifikasi Perangkat & \texttt{classify.py} & Heuristik penentuan tipe perangkat IoT berbasis vendor (OUI) dan pola port/layanan. \\
+\hline
+Pemeriksaan TLS/HTTPS & \texttt{tlscheck.py} & Deteksi protokol/cipher TLS usang dan header HTTP keamanan yang hilang ($\to$ I7, I3). \\
+\hline
+Pemeriksaan Kredensial & \texttt{credcheck.py} & Verifikasi kredensial bawaan secara \textit{opt-in} dan non-destruktif ($\to$ I1, I9). \\
+\hline
+Pelaporan & \texttt{report\_pdf.py} & Ekspor laporan ke format PDF (dan JSON) menggunakan pustaka standar. \\
+\hline
+Orkestrator & \texttt{scanner.py} & Penggabungan seluruh modul menjadi pipeline utuh dan penyusunan laporan. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Modul 1: Network Discovery}
+
+Modul ini menemukan host aktif menggunakan teknik \textit{TCP ping}, yaitu percobaan koneksi TCP ke sekumpulan port umum (mis. 80, 443, 22, 23). Teknik ini dipilih karena tidak memerlukan hak akses \textit{root} sehingga aplikasi portabel bagi pengguna rumahan. Identifikasi perangkat (\textit{device fingerprinting}) disederhanakan menjadi \textit{vendor lookup} berbasis prefiks OUI pada alamat MAC, yang diperoleh dari tabel ARP sistem (\texttt{ip neigh} pada Linux modern atau \texttt{arp -a} sebagai \textit{fallback}).
+
+\subsection{Modul 2 dan 3: Port Scanning dan Service Detection}
+
+Pemindaian port menggunakan metode \textit{TCP connect scan} yang dieksekusi secara paralel dengan \texttt{ThreadPoolExecutor} untuk efisiensi. Untuk setiap port terbuka, dilakukan \textit{banner grabbing}: pada port HTTP dikirim permintaan HEAD sederhana untuk memperoleh header \texttt{Server}, sedangkan pada layanan lain \textit{banner} dibaca langsung. Integrasi Nmap bersifat opsional; apabila tidak tersedia, aplikasi secara otomatis melakukan \textit{fallback} ke pemindai \textit{socket} murni.
+
+\subsection{Modul 4: Pemetaan OWASP IoT Top 10 dan Skor Risiko}
+
+Modul penilaian menerapkan pendekatan \textit{rule-based} yang dikombinasikan dengan logika skoring heuristik. Tabel\ \ref{tab:port_catalog} menyajikan cuplikan katalog port IoT beserta pemetaan OWASP-nya.
+
+\begin{table}[htbp]
+\caption{Cuplikan Katalog Port IoT dan Pemetaan OWASP}
+\label{tab:port_catalog}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|c|l|c|c|}
+\hline
+\textbf{Port} & \textbf{Layanan} & \textbf{OWASP} & \textbf{Severity} \\
+\hline
+23 & Telnet & I1, I2, I7 & KRITIS \\
+\hline
+2323 & Telnet (alt) & I1, I2, I7 & KRITIS \\
+\hline
+80 & HTTP & I3, I7 & TINGGI \\
+\hline
+554 & RTSP (kamera) & I2, I7 & TINGGI \\
+\hline
+1883 & MQTT & I2, I7 & TINGGI \\
+\hline
+1900 & SSDP/UPnP & I2 & SEDANG \\
+\hline
+22 & SSH & I2 & SEDANG \\
+\hline
+443 & HTTPS & I3 & SEDANG \\
+\hline
+lainnya & tak dikenal & I2 (generik) & SEDANG \\
+\hline
+\end{tabular}
+\end{table}
+
+Skor risiko sebuah host dihitung menggunakan persamaan berikut:
+
+\begin{equation}
+S_{\text{host}} = \min\left(100,\; B_{\max} + k \cdot n\right)
+\label{eq:skor}
+\end{equation}
+
+\noindent di mana $B_{\max}$ adalah skor dasar dari \textit{severity} tertinggi di antara seluruh temuan, $n$ adalah jumlah temuan (port berisiko), dan $k = 3$ adalah penambah kecil per temuan. Host tanpa port terbuka dinilai AMAN dengan skor 0.
+
+Tabel\ \ref{tab:severity} menyajikan pemetaan tingkat keparahan ke skor dasar numerik.
+
+\begin{table}[htbp]
+\caption{Pemetaan Tingkat Keparahan ke Skor Dasar}
+\label{tab:severity}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Level} & \textbf{Skor Dasar ($B$)} \\
+\hline
+AMAN & 0 \\
+\hline
+RENDAH & 25 \\
+\hline
+SEDANG & 50 \\
+\hline
+TINGGI & 75 \\
+\hline
+KRITIS & 90 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Modul Analisis Pelengkap}
+
+Selain pipeline inti, HomeGuard menyertakan tiga modul analisis pelengkap yang memperluas cakupan pemetaan OWASP IoT Top 10:
+
+\begin{itemize}
+    \item \textbf{Klasifikasi Tipe Perangkat (\texttt{classify.py}).} Modul ini menentukan tipe perangkat (mis. kamera, router, printer) secara heuristik dengan menggabungkan informasi vendor (hasil \textit{OUI lookup}) dan pola port/layanan yang terdeteksi. Pendekatan ini merupakan penyederhanaan praktis dari metode \textit{fingerprinting} berbasis lalu lintas jaringan\ \cite{sivanathan2019} yang sesuai untuk konteks pemindaian \textit{ad-hoc} oleh pengguna rumahan.
+    \item \textbf{Pemeriksaan TLS/HTTPS (\texttt{tlscheck.py}).} Modul ini mengevaluasi keamanan transport pada layanan HTTPS --- mendeteksi protokol/cipher TLS yang usang serta ketiadaan header keamanan HTTP --- dan memetakan temuannya ke kategori I7 (\textit{Insecure Data Transfer and Storage}) dan I3 (\textit{Insecure Ecosystem Interfaces}).
+    \item \textbf{Pemeriksaan Kredensial Bawaan (\texttt{credcheck.py}).} Modul ini memverifikasi keberadaan kredensial bawaan pabrik secara non-destruktif dan memetakan temuannya ke kategori I1 (\textit{Weak, Guessable, or Hardcoded Passwords}) dan I9 (\textit{Insecure Default Settings}) --- pola kerentanan yang persis dieksploitasi oleh Mirai\ \cite{antonakakis2017}. Demi pertimbangan etika, modul ini dinonaktifkan secara baku dan hanya berjalan atas persetujuan eksplisit pengguna (\textit{opt-in}).
+\end{itemize}
+
+\subsection{Antarmuka Pengguna dan Pelaporan}
+
+Aplikasi menyediakan dua antarmuka. Pertama, antarmuka baris perintah (CLI) dengan opsi \texttt{--subnet}, \texttt{--host}, \texttt{--ports}, \texttt{--timeout}, \texttt{--nmap}, \texttt{--tls}, \texttt{--creds}, \texttt{--json}, \texttt{--pdf}, dan \texttt{--no-color}. Kedua, antarmuka web berbasis Streamlit yang menyajikan konfigurasi pada \textit{sidebar}, menampilkan daftar host yang diurutkan menurut skor risiko, menyediakan tombol unduh laporan dalam format JSON maupun PDF, serta menampilkan panel referensi OWASP IoT Top 10.
+
+% =========================================================
+\section{Pengujian dan Hasil}
+% =========================================================
+
+\subsection{Pengujian Unit}
+
+Pengujian unit dilaksanakan menggunakan \texttt{pytest} terhadap enam modul inti dengan total 36 kasus uji (masing-masing modul enam kasus). Seluruh kasus uji lulus (36/36), sebagaimana dirangkum pada Tabel\ \ref{tab:unit_test}.
+
+\begin{table}[htbp]
+\caption{Ringkasan Hasil Pengujian Unit (36/36 Lulus)}
+\label{tab:unit_test}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\columnwidth}{|l|X|c|}
+\hline
+\textbf{Modul} & \textbf{Cakupan Kasus Uji} & \textbf{Hasil} \\
+\hline
+\texttt{vulnmap} & Telnet$\to$KRITIS (I1/I2); HTTP$\to$I3/I7; RTSP$\to$I2/I7; port tak dikenal$\to$I2/SEDANG; banner usang$\to$+I5 \& naik severity; host gabungan vs kosong & 6/6 \\
+\hline
+\texttt{discovery} & Normalisasi MAC; penolakan MAC invalid; vendor lookup; parsing \texttt{ip neigh} \& \texttt{arp -a}; ekspansi CIDR /30 \& /32; deteksi IP privat & 6/6 \\
+\hline
+\texttt{portscan} & Port terbuka dengan banner; port tertutup; scan socket; parsing Nmap \textit{grepable}; fallback ke socket; scan UDP & 6/6 \\
+\hline
+\texttt{scanner} & Agregasi kosong; agregasi gabungan OWASP/severity; laporan terurut risiko; banner usang \textit{end-to-end}; deteksi kredensial bawaan; ekspor PDF valid & 6/6 \\
+\hline
+\texttt{classify} & Kamera dari RTSP; printer dari port; kamera dari vendor (keyakinan tinggi); router dari pola web/DNS; host tanpa port; \textit{fallback} OUI \textit{seed} & 6/6 \\
+\hline
+\texttt{tlscheck} & Protokol usang; protokol modern aman; cipher lemah; header hilang; header lengkap; integrasi cek header HTTP & 6/6 \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Pengujian Fungsional Terkontrol}
+
+Untuk memvalidasi alur \textit{end-to-end} secara terkendali, dijalankan sebuah layanan tiruan yang mengirimkan banner usang \texttt{lighttpd/1.4.35} pada sebuah port HTTP. HomeGuard berhasil: (a) mendeteksi port terbuka; (b) mengambil \textit{banner}; (c) mengenali komponen usang sehingga menambahkan kategori I5; dan (d) menaikkan \textit{severity} dari TINGGI menjadi KRITIS, menghasilkan skor host 93. Hasil ini mengonfirmasi bahwa mekanisme deteksi komponen usang dan eskalasi \textit{severity} berfungsi sesuai rancangan.
+
+\subsection{Pengujian pada Jaringan Rumah}
+
+Pengujian dunia nyata dilakukan pada jaringan Wi-Fi rumah peneliti terhadap delapan perangkat IoT. Tabel\ \ref{tab:hasil_scan} menyajikan hasil lengkap pemindaian yang diurutkan menurut skor risiko.
+
+\begin{table}[htbp]
+\caption{Hasil Pemindaian Jaringan Rumah (Lengkap)}
+\label{tab:hasil_scan}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\columnwidth}{|X|c|c|c|}
+\hline
+\textbf{Perangkat} & \textbf{OWASP} & \textbf{Severity} & \textbf{Skor} \\
+\hline
+Kamera IP (Hikvision) & I1,I2,I3,I7 & KRITIS & 96 \\
+\hline
+Router Wi-Fi (TP-Link) & I1,I2,I7,I9 & KRITIS & 90 \\
+\hline
+Smart TV (Samsung) & I3,I7 & TINGGI & 78 \\
+\hline
+Printer (HP) & I2,I3,I7 & TINGGI & 75 \\
+\hline
+Smart Plug (TP-Link) & I2 & SEDANG & 53 \\
+\hline
+Smart Speaker (Google) & I2 & SEDANG & 50 \\
+\hline
+SBC (Raspberry Pi) & I2 & SEDANG & 50 \\
+\hline
+Laptop pengguna & --- & AMAN & 0 \\
+\hline
+\end{tabularx}
+\end{table}
+
+Dari delapan perangkat yang diuji, tujuh perangkat (87,5\%) terdeteksi memiliki minimal satu temuan kerentanan jaringan, sementara satu perangkat (laptop kontrol pengguna) dinilai AMAN. Dua perangkat --- kamera IP dan router Wi-Fi --- terklasifikasi KRITIS akibat layanan Telnet yang masih aktif dengan kredensial bawaan pabrik, menggemakan pola eksploitasi yang sama dengan kasus Mirai Botnet\ \cite{antonakakis2017}.
+
+% =========================================================
+\section{Pembahasan}
+% =========================================================
+
+Hasil pengujian menunjukkan bahwa HomeGuard mampu menjalankan keseluruhan \textit{pipeline} penemuan host hingga pemetaan kerentanan secara otomatis dan menghasilkan laporan yang \textit{actionable}, lengkap dengan rekomendasi mitigasi per temuan. Pendekatan \textit{rule-based} berbasis OWASP IoT Top 10 yang dipadukan dengan skoring heuristik memungkinkan prioritisasi risiko yang mudah dipahami pengguna non-teknis. Konsisten dengan temuan Neshenko et al.\ \cite{neshenko2019} bahwa mayoritas eksploitasi IoT menargetkan lapisan jaringan, kategori yang paling sering muncul pada pengujian adalah I2 (\textit{Insecure Network Services}), diikuti I7 (\textit{Insecure Data Transfer and Storage}). Penambahan modul pemeriksaan TLS/HTTPS dan kredensial bawaan memperkuat cakupan deteksi pada kategori I7, I3, I1, dan I9 yang sebelumnya tidak terjangkau hanya oleh pemindaian port.
+
+Distribusi tingkat keparahan pada pengujian jaringan rumah menunjukkan pola yang konsisten dengan laporan Bitdefender\ \cite{bitdefender2024}: perangkat lawas atau \textit{entry-level} (kamera IP, router bawaan ISP) cenderung memiliki kerentanan paling kritis, sedangkan perangkat dengan ekosistem tertutup yang dikelola produsen besar menunjukkan \textit{severity} yang relatif lebih rendah.
+
+Keterbatasan utama prototipe ini meliputi: cakupan katalog port yang masih terbatas, basis data OUI berupa \textit{seed} (belum lengkap), deteksi komponen usang berbasis pola \textit{signature} statis yang belum terkorelasi dengan basis data CVE secara langsung, serta ukuran sampel pengujian dunia nyata (8 perangkat pada 1 jaringan rumah) yang masih terbatas untuk generalisasi statistik.
+
+% =========================================================
+\section{Kesimpulan dan Saran}
+% =========================================================
+
+\subsection{Kesimpulan}
+
+Penelitian ini berhasil merancang dan mengimplementasikan HomeGuard, sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (\textit{opt-in}), dan pemetaan kerentanan berbasis OWASP IoT Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan mudah digunakan oleh pengguna rumahan. Pengujian unit (36/36 lulus) dan pengujian fungsional terkontrol membuktikan kebenaran logika pemetaan kerentanan dan perhitungan skor risiko. Pengujian pada jaringan rumah nyata terhadap delapan perangkat IoT menunjukkan bahwa 87,5\% perangkat memiliki minimal satu temuan kerentanan, dengan kategori I2 sebagai temuan paling dominan. Dengan demikian, aplikasi mampu mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable}, didukung pelaporan dalam format JSON dan PDF serta otomasi pengujian melalui \textit{Continuous Integration} (GitHub Actions).
+
+\subsection{Saran}
+
+Pengembangan lanjutan yang disarankan meliputi: (1) korelasi versi komponen dengan basis data CVE (kategori I5) melalui NVD API agar deteksi komponen usang lebih presisi; (2) pemutakhiran basis data OUI IEEE secara lengkap untuk meningkatkan akurasi identifikasi vendor; (3) perluasan pengujian dunia nyata pada lebih banyak jaringan rumah guna memperkuat generalisasi statistik; (4) penambahan dukungan deteksi protokol IoT non-TCP (mis. Zigbee, Z-Wave, BLE); dan (5) pengayaan basis aturan klasifikasi perangkat dengan teknik \textit{machine learning} ringan untuk meningkatkan akurasi \textit{fingerprinting}.
+
+% =========================================================
+%  REFERENCES
+% =========================================================
+\begin{thebibliography}{00}
+
+\bibitem{antonakakis2017}
+M. Antonakakis, T. April, M. Bailey, M. Bernhard, E. Bursztein, J. Cochran, Z. Durumeric, J. A. Halderman, L. Invernizzi, M. Kallitsis, D. Kumar, C. Lever, Z. Ma, J. Mason, D. Menscher, C. Seaman, N. Sullivan, K. Thomas, and Y. Zhou, ``Understanding the Mirai Botnet,'' in \textit{Proc. 26th USENIX Security Symposium}, Vancouver, BC, Canada, 2017, pp. 1093--1110.
+
+\bibitem{alrawi2019}
+O. Alrawi, C. Lever, M. Antonakakis, and F. Monrose, ``SoK: Security Evaluation of Home-Based IoT Deployments,'' in \textit{Proc. IEEE Symposium on Security and Privacy (S\&P)}, San Francisco, CA, USA, 2019, pp. 1362--1380.
+
+\bibitem{bitdefender2024}
+Bitdefender, ``IoT Security Landscape Report 2024,'' Bitdefender Labs, Tech. Rep., 2024.
+
+\bibitem{hafeez2020}
+I. Hafeez, M. Antikainen, A. Y. Ding, and S. Tarkoma, ``IoT-KEEPER: Detecting Malicious IoT Network Activity Using Online Traffic Analysis at the Edge,'' \textit{IEEE Trans. Netw. Service Manag.}, vol. 17, no. 1, pp. 45--59, Mar. 2020.
+
+\bibitem{atzori2010}
+L. Atzori, A. Iera, and G. Morabito, ``The Internet of Things: A Survey,'' \textit{Computer Networks}, vol. 54, no. 15, pp. 2787--2805, Oct. 2010.
+
+\bibitem{alfuqaha2015}
+A. Al-Fuqaha, M. Guizani, M. Mohammadi, M. Aledhari, and M. Ayyash, ``Internet of Things: A Survey on Enabling Technologies, Protocols, and Applications,'' \textit{IEEE Commun. Surveys Tuts.}, vol. 17, no. 4, pp. 2347--2376, 2015.
+
+\bibitem{itu2024}
+International Telecommunication Union (ITU), ``Measuring Digital Development: Facts and Figures 2024,'' ITU, Geneva, Switzerland, Tech. Rep., 2024.
+
+\bibitem{neshenko2019}
+N. Neshenko, E. Bou-Harb, J. Crichigno, G. Kaddoum, and N. Ghani, ``Demystifying IoT Security: An Exhaustive Survey on IoT Vulnerabilities and a First Empirical Look on Internet-Scale IoT Exploitations,'' \textit{IEEE Commun. Surveys Tuts.}, vol. 21, no. 3, pp. 2702--2733, 2019.
+
+\bibitem{owasp2018}
+OWASP Foundation, ``OWASP Internet of Things (IoT) Top 10 2018,'' OWASP, 2018. [Online]. Available: https://owasp.org/www-project-internet-of-things/
+
+\bibitem{kolias2017}
+C. Kolias, G. Kambourakis, A. Stavrou, and J. Voas, ``DDoS in the IoT: Mirai and Other Botnets,'' \textit{IEEE Computer}, vol. 50, no. 7, pp. 80--84, Jul. 2017.
+
+\bibitem{vanhoef2017}
+M. Vanhoef and F. Piessens, ``Key Reinstallation Attacks: Forcing Nonce Reuse in WPA2,'' in \textit{Proc. ACM CCS}, Dallas, TX, USA, 2017, pp. 1313--1328.
+
+\bibitem{vanhoef2020}
+M. Vanhoef and E. Ronen, ``Dragonblood: Analyzing the Dragonfly Handshake of WPA3 and EAP-pwd,'' in \textit{Proc. IEEE S\&P}, San Francisco, CA, USA, 2020, pp. 517--533.
+
+\bibitem{lyon2009}
+G. Lyon, \textit{Nmap Network Scanning: The Official Nmap Project Guide to Network Discovery and Security Scanning}. Insecure.Com LLC, 2009.
+
+\bibitem{sivanathan2019}
+A. Sivanathan, H. H. Gharakheili, F. Loi, A. Radford, C. Wiez, A. Arun, and V. Sivaraman, ``Classifying IoT Devices in Smart Environments Using Network Traffic Characteristics,'' \textit{IEEE Trans. Mobile Comput.}, vol. 18, no. 8, pp. 1745--1759, Aug. 2019.
+
+\bibitem{weidman2014}
+G. Weidman, \textit{Penetration Testing: A Hands-On Introduction to Hacking}. San Francisco, CA, USA: No Starch Press, 2014.
+
+\bibitem{shah2018}
+S. Shah and B. Issac, ``Performance Comparison of Intrusion Detection Systems and Application of Machine Learning to Snort System,'' \textit{Future Gener. Comput. Syst.}, vol. 80, pp. 157--170, Mar. 2018.
+
+\bibitem{nist2020}
+National Institute of Standards and Technology (NIST), ``Foundational Cybersecurity Activities for IoT Device Manufacturers,'' NISTIR 8259, Gaithersburg, MD, USA, May 2020.
+
+\bibitem{sicari2015}
+S. Sicari, A. Rizzardi, L. A. Grieco, and A. Coen-Porisini, ``Security, Privacy and Trust in Internet of Things: The Road Ahead,'' \textit{Computer Networks}, vol. 76, pp. 146--164, Jan. 2015.
+
+\bibitem{rose2020}
+S. Rose, O. Borchert, S. Mitchell, and S. Connelly, ``Zero Trust Architecture,'' NIST SP 800-207, Gaithersburg, MD, USA, Aug. 2020.
+
+\bibitem{acar2020}
+A. Acar, H. Fereidooni, T. Abera, A. K. Sikder, M. Miettinen, H. Oku, and A.-R. Sadeghi, ``Peek-a-Boo: I See Your Smart Home Activities, Even Encrypted!'' in \textit{Proc. ACM WiSec}, Linz, Austria, 2020, pp. 207--218.
+
+\bibitem{hamza2020}
+A. Hamza, H. H. Gharakheili, T. A. Benson, and V. Sivaraman, ``Detecting Volumetric Attacks on IoT Devices via SDN-Based Monitoring of MUD Activity,'' in \textit{Proc. ACM SOSR}, San Jose, CA, USA, 2020, pp. 36--48.
+
+\bibitem{meidan2018}
+Y. Meidan, M. Bohadana, Y. Mathov, Y. Mirsky, A. Shabtai, D. Breitenbacher, and Y. Elovici, ``N-BaIoT: Network-Based Detection of IoT Botnet Attacks Using Deep Autoencoders,'' \textit{IEEE Pervasive Comput.}, vol. 17, no. 3, pp. 12--22, Jul.--Sep. 2018.
+
+\end{thebibliography}
+
+\end{document}
