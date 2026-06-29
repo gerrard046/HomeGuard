@@ -36,7 +36,7 @@
 \maketitle
 
 \begin{abstract}
-Pertumbuhan pesat perangkat Internet of Things (IoT) pada lingkungan rumah tangga telah menciptakan permukaan serangan (\textit{attack surface}) baru yang signifikan dalam ekosistem jaringan domestik. Perangkat seperti \textit{smart TV}, kamera pengintai (CCTV), \textit{smart plug}, dan asisten virtual yang terhubung ke jaringan Wi-Fi rumah kerap memiliki kerentanan keamanan yang tidak disadari oleh penggunanya. Penelitian ini bertujuan untuk merancang dan mengimplementasikan sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mampu mengidentifikasi kerentanan perangkat IoT pada jaringan Wi-Fi domestik. Aplikasi yang dikembangkan, bernama HomeGuard, mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi tipe perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (opsional dan \textit{opt-in}), serta pemetaan kerentanan berdasarkan kerangka acuan OWASP IoT Top 10, dilengkapi pelaporan dalam format JSON dan PDF. Metode penelitian yang digunakan adalah \textit{Research and Development} (R\&D) dengan pendekatan \textit{prototyping}. Pengujian dilakukan pada jaringan Wi-Fi rumah milik peneliti dengan delapan perangkat IoT yang terhubung, didukung oleh 36 kasus pengujian unit yang seluruhnya lulus. Hasil penelitian menunjukkan bahwa aplikasi yang dikembangkan mampu mengidentifikasi kerentanan keamanan pada perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable} bagi pengguna rumahan. Penelitian ini berkontribusi pada upaya peningkatan kesadaran dan kapabilitas keamanan siber di tingkat rumah tangga.
+Pertumbuhan pesat perangkat Internet of Things (IoT) pada lingkungan rumah tangga telah menciptakan permukaan serangan (\textit{attack surface}) baru yang signifikan dalam ekosistem jaringan domestik. Perangkat seperti \textit{smart TV}, kamera pengintai (CCTV), \textit{smart plug}, dan asisten virtual yang terhubung ke jaringan Wi-Fi rumah kerap memiliki kerentanan keamanan yang tidak disadari oleh penggunanya. Penelitian ini bertujuan untuk merancang dan mengimplementasikan sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mampu mengidentifikasi kerentanan perangkat IoT pada jaringan Wi-Fi domestik. Aplikasi yang dikembangkan, bernama HomeGuard, mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi tipe perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (opsional dan \textit{opt-in}), serta pemetaan kerentanan berdasarkan kerangka acuan OWASP IoT Top 10, dilengkapi pelaporan dalam format JSON dan PDF. Metode penelitian yang digunakan adalah \textit{Research and Development} (R\&D) dengan pendekatan \textit{prototyping}. Pengujian dilaksanakan pada lingkungan lab virtual yang mereplikasi perilaku jaringan perangkat IoT menggunakan lima mesin virtual (VM), didukung oleh 36 kasus pengujian unit yang seluruhnya lulus. Hasil penelitian menunjukkan bahwa aplikasi yang dikembangkan mampu mengidentifikasi kerentanan keamanan pada perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable} bagi pengguna rumahan. Penelitian ini berkontribusi pada upaya peningkatan kesadaran dan kapabilitas keamanan siber di tingkat rumah tangga.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -78,7 +78,7 @@ Tujuan dari penelitian ini adalah:
 \begin{enumerate}
     \item Merancang dan membangun aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, dan pemetaan kerentanan.
     \item Mengidentifikasi dan mengklasifikasikan jenis-jenis kerentanan yang terdapat pada perangkat IoT dalam jaringan Wi-Fi domestik berdasarkan standar OWASP IoT Top 10.
-    \item Mengevaluasi efektivitas aplikasi yang dikembangkan dalam mendeteksi kerentanan keamanan pada perangkat IoT melalui serangkaian pengujian pada lingkungan jaringan rumah yang sebenarnya (\textit{real-world testing}).
+    \item Mengevaluasi efektivitas aplikasi yang dikembangkan dalam mendeteksi kerentanan keamanan pada perangkat IoT melalui serangkaian pengujian pada lingkungan lab virtual yang mereplikasi perilaku jaringan perangkat IoT (\textit{virtual lab testing}).
 \end{enumerate}
 
 \subsection{Manfaat Penelitian}
@@ -90,12 +90,12 @@ Tujuan dari penelitian ini adalah:
 \subsection{Batasan Masalah}
 
 \begin{enumerate}
-    \item Pengujian dilakukan secara eksklusif pada jaringan Wi-Fi rumah milik peneliti sendiri, sesuai dengan prinsip etika keamanan siber dan ketentuan hukum yang berlaku.
+    \item Pengujian dilakukan pada lingkungan lab virtual (\textit{host-only network} VirtualBox) yang dikontrol sepenuhnya oleh peneliti, sesuai dengan prinsip etika keamanan siber dan ketentuan hukum yang berlaku.
     \item Pemindaian berfokus pada analisis tingkat jaringan (\textit{network-level analysis}), mencakup \textit{host discovery}, \textit{port scanning}, dan \textit{service detection}, tanpa melakukan analisis firmware perangkat.
     \item Aplikasi dirancang sebagai \textit{non-intrusive scanner} yang tidak melakukan eksploitasi aktif (\textit{active exploitation}) terhadap kerentanan yang ditemukan. Pemeriksaan kredensial bawaan bersifat opsional, \textit{opt-in}, dan terbatas pada verifikasi non-destruktif atas jaringan milik sendiri.
     \item Klasifikasi kerentanan mengacu pada kerangka kerja OWASP IoT Top 10 versi 2018\ \cite{owasp2018}.
     \item Antarmuka pengguna dikembangkan berbasis web menggunakan framework Streamlit.
-    \item Pengujian dunia nyata dibatasi pada 8 unit perangkat IoT yang tersedia di lingkungan rumah peneliti (lihat Tabel\ \ref{tab:device_list}).
+    \item Pengujian dilaksanakan pada 5 mesin virtual yang masing-masing mereplikasi perilaku jaringan satu jenis perangkat IoT (kamera IP, router, smart TV, printer jaringan, smart plug) pada subnet \texttt{192.168.56.0/24} (lihat Tabel\ \ref{tab:device_list}).
 \end{enumerate}
 
 % =========================================================
@@ -291,7 +291,7 @@ Pengembangan HomeGuard dilaksanakan melalui lima tahap berurutan:
     \item \textbf{Analisis Kebutuhan.} Identifikasi kebutuhan fungsional dan non-fungsional (portabilitas, kemudahan penggunaan, operasi \textit{non-intrusive} tanpa hak akses \textit{root}).
     \item \textbf{Perancangan Arsitektur.} Perancangan arsitektur \textit{pipeline} inti empat tahap beserta modul analisis pelengkap dan basis pengetahuan statis (katalog port IoT, definisi OWASP IoT Top 10, basis data OUI).
     \item \textbf{Implementasi.} Pengkodean modul menggunakan bahasa Python ($\geq$ 3.9), hanya memakai pustaka standar tanpa dependensi wajib.
-    \item \textbf{Pengujian.} Pengujian unit (\texttt{pytest}, 36 kasus uji) dan pengujian fungsional pada jaringan Wi-Fi rumah milik peneliti.
+    \item \textbf{Pengujian.} Pengujian unit (\texttt{pytest}, 36 kasus uji) dan pengujian fungsional pada lingkungan lab virtual (5 VM pada subnet \texttt{192.168.56.0/24}).
     \item \textbf{Evaluasi.} Analisis hasil pemindaian untuk menilai kemampuan aplikasi dan rekomendasi mitigasi.
 \end{enumerate}
 
@@ -299,38 +299,34 @@ Pengembangan HomeGuard dilaksanakan melalui lima tahap berurutan:
 
 Implementasi memanfaatkan bahasa pemrograman Python beserta pustaka standarnya (\texttt{socket}, \texttt{ssl}, \texttt{ipaddress}, \texttt{subprocess}, \texttt{concurrent.futures}, dan \texttt{re}). Komponen opsional meliputi Streamlit untuk antarmuka web, \texttt{pytest} untuk pengujian, serta Nmap sebagai pemindai eksternal opsional.
 
-Pengujian dilaksanakan pada jaringan Wi-Fi domestik dengan delapan unit perangkat IoT sebagaimana dirinci pada Tabel\ \ref{tab:device_list}.
+Pengujian dilaksanakan pada lingkungan lab virtual menggunakan mesin virtual (VM) yang dikonfigurasi untuk mereplikasi perilaku jaringan perangkat IoT, sebagaimana dirinci pada Tabel\ \ref{tab:device_list}.
 
 \begin{table}[htbp]
-\caption{Daftar Perangkat IoT pada Lingkungan Pengujian}
+\caption{Daftar VM pada Lingkungan Lab Virtual (Subnet 192.168.56.0/24)}
 \label{tab:device_list}
 \renewcommand{\arraystretch}{1.2}
-\begin{tabularx}{\columnwidth}{|c|X|l|}
+\begin{tabularx}{\columnwidth}{|c|l|l|X|}
 \hline
-\textbf{No} & \textbf{Jenis Perangkat} & \textbf{Vendor} \\
+\textbf{No} & \textbf{IP} & \textbf{Jenis VM} & \textbf{Port yang Dibuka (representatif)} \\
 \hline
-1 & Kamera IP (CCTV) & Hikvision \\
+1 & 192.168.56.20 & CCTV IP Camera & 23, 80, 554, 8080 \\
 \hline
-2 & Smart TV & Samsung \\
+2 & 192.168.56.30 & Wireless Router & 22, 80, 443, 1900 \\
 \hline
-3 & Smart Plug & TP-Link (Kasa) \\
+3 & 192.168.56.40 & Smart TV       & 1900, 5555, 8080, 8443 \\
 \hline
-4 & Router Wi-Fi (AP utama) & TP-Link \\
+4 & 192.168.56.50 & Network Printer & 21, 80, 443, 631, 9100 \\
 \hline
-5 & Single-board computer & Raspberry Pi Foundation \\
+5 & 192.168.56.60 & Smart Plug     & 80, 1883 \\
 \hline
-6 & Smart Speaker & Google (Nest) \\
-\hline
-7 & Printer jaringan & Hewlett-Packard (HP) \\
-\hline
-8 & Laptop pengguna (kontrol) & Intel (NIC) \\
+6 & 192.168.56.101 & Host Kontrol  & --- \\
 \hline
 \end{tabularx}
 \end{table}
 
 \subsection{Prinsip Etika Penelitian}
 
-Sesuai batasan masalah, seluruh pemindaian dilakukan secara eksklusif pada jaringan milik peneliti sendiri. Aplikasi dirancang sebagai \textit{non-intrusive scanner} yang melakukan pendekatan semi-aktif: pemindaian port dan deteksi layanan tanpa eksploitasi aktif terhadap kerentanan yang ditemukan. Pemeriksaan kredensial bawaan dinonaktifkan secara baku dan hanya berjalan bila pengguna mengaktifkannya secara eksplisit (\textit{opt-in}). Peringatan etika ditampilkan secara eksplisit pada antarmuka pengguna, dokumentasi, dan setiap laporan keluaran.
+Sesuai batasan masalah, seluruh pemindaian dilakukan pada lingkungan lab virtual yang dikontrol sepenuhnya oleh peneliti dan tidak melibatkan jaringan atau perangkat pihak lain. Aplikasi dirancang sebagai \textit{non-intrusive scanner} yang melakukan pendekatan semi-aktif: pemindaian port dan deteksi layanan tanpa eksploitasi aktif terhadap kerentanan yang ditemukan. Pemeriksaan kredensial bawaan dinonaktifkan secara baku dan hanya berjalan bila pengguna mengaktifkannya secara eksplisit (\textit{opt-in}). Peringatan etika ditampilkan secara eksplisit pada antarmuka pengguna, dokumentasi, dan setiap laporan keluaran.
 
 % =========================================================
 \section{Perancangan dan Implementasi}
