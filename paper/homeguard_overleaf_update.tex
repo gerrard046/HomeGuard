@@ -465,6 +465,8 @@ Aplikasi menyediakan dua antarmuka. Pertama, antarmuka baris perintah (CLI) deng
 \section{Pengujian dan Hasil}
 % =========================================================
 
+Pengujian HomeGuard dilaksanakan dalam tiga lapisan berjenjang yang menerapkan pendekatan \textit{Verification and Validation} (V\&V): (1) \textbf{pengujian unit} untuk memverifikasi kebenaran logika modul secara terisolasi; (2) \textbf{pengujian fungsional} menggunakan skrip layanan tiruan pada \textit{localhost} (CLI + \texttt{demo\_server.py}) untuk memvalidasi alur \textit{end-to-end} deteksi dan pemetaan OWASP; serta (3) \textbf{pengujian lingkungan lab virtual} menggunakan topologi jaringan yang lebih realistis (VirtualBox, subnet \texttt{192.168.56.0/24}) untuk mengukur akurasi deteksi dan kinerja operasional secara statistik.
+
 \subsection{Pengujian Unit}
 
 Pengujian unit dilaksanakan menggunakan \texttt{pytest} terhadap enam modul inti dengan total 36 kasus uji (masing-masing modul enam kasus). Seluruh kasus uji lulus (36/36), sebagaimana dirangkum pada Tabel\ \ref{tab:unit_test}.
@@ -492,9 +494,48 @@ Pengujian unit dilaksanakan menggunakan \texttt{pytest} terhadap enam modul inti
 \end{tabularx}
 \end{table}
 
-\subsection{Pengujian Fungsional Terkontrol}
+Gambar~\ref{fig:pytest} menampilkan keluaran \texttt{pytest -v} yang mengonfirmasi seluruh 36 kasus uji lulus dalam waktu 1,25 detik.
 
-Untuk memvalidasi alur \textit{end-to-end} secara terkendali, dijalankan sebuah layanan tiruan yang mengirimkan banner usang \texttt{lighttpd/1.4.35} pada sebuah port HTTP. HomeGuard berhasil: (a) mendeteksi port terbuka; (b) mengambil \textit{banner}; (c) mengenali komponen usang sehingga menambahkan kategori I5; dan (d) menaikkan \textit{severity} dari TINGGI menjadi KRITIS, menghasilkan skor host 93. Hasil ini mengonfirmasi bahwa mekanisme deteksi komponen usang dan eskalasi \textit{severity} berfungsi sesuai rancangan.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{screenshots/02_pytest_36passed.png}
+\caption{Keluaran \texttt{pytest -v --tb=no} menampilkan 36 kasus uji dari 6 modul seluruhnya lulus (\textit{36 passed in 1.25s}).}
+\label{fig:pytest}
+\end{figure}
+
+\subsection{Pengujian Fungsional --- CLI dan Skrip Layanan Tiruan}
+
+Lapisan kedua pengujian memvalidasi alur \textit{end-to-end} deteksi secara terkendali menggunakan skrip \texttt{demo\_server.py} yang menyalakan tiga layanan IoT tiruan pada \texttt{127.0.0.1} secara simultan: Telnet pada port 2323, HTTP dengan banner komponen usang (\texttt{lighttpd/1.4.35}) pada port 8080, dan RTSP pada port 8554. Skenario ini merepresentasikan profil port yang umum dijumpai pada kamera IP dan perangkat IoT dengan antarmuka web. Selanjutnya, CLI HomeGuard dijalankan dengan perintah \texttt{python3 cli.py --host 127.0.0.1 --ports 2323,8080,8554}. Tujuan pengujian lapisan ini adalah memverifikasi kebenaran: (a) identifikasi layanan dari \textit{banner}; (b) pemetaan ke kategori OWASP IoT Top 10; (c) mekanisme eskalasi \textit{severity} akibat komponen usang; dan (d) perhitungan skor risiko host --- pada kondisi yang sepenuhnya deterministik dan dapat diulang tanpa bergantung pada topologi jaringan.
+
+Tabel~\ref{tab:cli_test} merangkum perbandingan antara hasil yang diharapkan dan hasil yang sebenarnya dideteksi oleh HomeGuard.
+
+\begin{table}[htbp]
+\caption{Hasil Pengujian Fungsional --- Layanan Tiruan pada \texttt{127.0.0.1}}
+\label{tab:cli_test}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\columnwidth}{|c|l|c|c|X|}
+\hline
+\textbf{Port} & \textbf{Layanan} & \textbf{Diharapkan} & \textbf{Terdeteksi} & \textbf{Kategori OWASP} \\
+\hline
+2323 & telnet-alt   & KRITIS          & KRITIS & I1, I2, I7 \\
+\hline
+8080 & http-proxy   & KRITIS$^\dagger$ & KRITIS & I3, I5, I7 \\
+\hline
+8554 & rtsp-alt     & TINGGI          & TINGGI & I2, I7 \\
+\hline
+\multicolumn{5}{|l|}{$^\dagger$ Eskalasi dari TINGGI karena komponen usang \texttt{lighttpd/1.4.35} terdeteksi (+I5).} \\
+\hline
+\end{tabularx}
+\end{table}
+
+Ketiga layanan terdeteksi dengan benar (\textit{3/3 match}). Skor risiko host dihitung otomatis sebagai $S = \min(100,\, 90 + 3 \times 3) = 99$, sesuai Persamaan~\ref{eq:skor}. Gambar~\ref{fig:cli_output} menampilkan keluaran CLI lengkap dari skenario ini, termasuk rekomendasi mitigasi per temuan yang dihasilkan secara otomatis oleh HomeGuard.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{screenshots/01_cli_output.png}
+\caption{Keluaran CLI HomeGuard saat memindai tiga layanan IoT tiruan pada \texttt{127.0.0.1}. Dua temuan KRITIS (Telnet port 2323 dan HTTP usang port 8080) serta satu temuan TINGGI (RTSP port 8554) berhasil teridentifikasi dengan rekomendasi mitigasi masing-masing.}
+\label{fig:cli_output}
+\end{figure}
 
 \subsection{Pengujian pada Lingkungan Lab Virtual}
 
@@ -566,7 +607,7 @@ Pemantauan sumber daya selama pemindaian menunjukkan bahwa HomeGuard beroperasi 
 \section{Pembahasan}
 % =========================================================
 
-Hasil pengujian menunjukkan bahwa HomeGuard mampu menjalankan keseluruhan \textit{pipeline} penemuan host hingga pemetaan kerentanan secara otomatis dan menghasilkan laporan yang \textit{actionable}, lengkap dengan rekomendasi mitigasi per temuan. Pada lingkungan lab virtual, aplikasi mencapai F1-\textit{score} deteksi port sebesar 0,8780 dengan \textit{recall} 0,9474 --- artinya hampir seluruh port berisiko berhasil teridentifikasi. Pendekatan \textit{rule-based} berbasis OWASP IoT Top 10 yang dipadukan dengan skoring heuristik memungkinkan prioritisasi risiko yang mudah dipahami pengguna non-teknis. Konsisten dengan temuan Neshenko et al.\ \cite{neshenko2019} bahwa mayoritas eksploitasi IoT menargetkan lapisan jaringan, kategori yang paling sering muncul pada pengujian adalah I2 (\textit{Insecure Network Services}), diikuti I7 (\textit{Insecure Data Transfer and Storage}).
+Hasil pengujian tiga lapisan menunjukkan bahwa HomeGuard mampu memenuhi tujuan rancangannya secara konsisten. Pada lapisan fungsional (CLI + \texttt{demo\_server.py}), seluruh tiga layanan tiruan --- Telnet, HTTP usang, dan RTSP --- terdeteksi dengan pemetaan OWASP yang tepat (\textit{3/3 match}), mekanisme eskalasi \textit{severity} akibat komponen usang berfungsi sesuai rancangan, dan skor risiko host dihitung dengan benar (skor 99). Pengujian ini memverifikasi kebenaran logika inti deteksi pada kondisi yang terkontrol sepenuhnya. Pada lapisan lingkungan lab virtual (5 VM, subnet \texttt{192.168.56.0/24}), aplikasi mencapai F1-\textit{score} deteksi port sebesar 0,8780 dengan \textit{recall} 0,9474 --- artinya hampir seluruh port berisiko pada topologi jaringan yang lebih realistis berhasil teridentifikasi. Pendekatan \textit{rule-based} berbasis OWASP IoT Top 10 yang dipadukan dengan skoring heuristik memungkinkan prioritisasi risiko yang mudah dipahami pengguna non-teknis. Konsisten dengan temuan Neshenko et al.\ \cite{neshenko2019} bahwa mayoritas eksploitasi IoT menargetkan lapisan jaringan, kategori yang paling sering muncul pada kedua skenario pengujian adalah I2 (\textit{Insecure Network Services}), diikuti I7 (\textit{Insecure Data Transfer and Storage}).
 
 Dari sisi kinerja, waktu pemindaian rata-rata 3,96 detik per host dengan standar deviasi yang sangat kecil ($\sigma = 0{,}04$ detik), mencerminkan konsistensi yang tinggi. Lonjakan waktu pada \textit{cold start} ($\approx$99 detik) disebabkan oleh pengunduhan data CVE dari NVD API, bukan oleh proses pemindaian itu sendiri. Konsumsi sumber daya yang rendah (CPU rata-rata 4,13\%, RAM rata-rata 36,56 MB) mengonfirmasi bahwa aplikasi dapat berjalan pada komputer rumahan tanpa beban yang berarti.
 
@@ -578,7 +619,7 @@ Keterbatasan utama penelitian ini meliputi: (1) pengujian dilaksanakan pada ling
 
 \subsection{Kesimpulan}
 
-Penelitian ini berhasil merancang dan mengimplementasikan HomeGuard, sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (\textit{opt-in}), dan pemetaan kerentanan berbasis OWASP IoT Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan mudah digunakan oleh pengguna rumahan. Pengujian unit (36/36 lulus) dan pengujian fungsional terkontrol membuktikan kebenaran logika pemetaan kerentanan dan perhitungan skor risiko. Pengujian pada lingkungan lab virtual (5 VM IoT, subnet \texttt{192.168.56.0/24}) menghasilkan F1-\textit{score} deteksi port 0,8780 (\textit{precision} 0,8182, \textit{recall} 0,9474) dengan waktu pemindaian rata-rata 3,96 detik per host ($\sigma = 0{,}04$ detik) dan konsumsi sumber daya yang ringan (CPU rata-rata 4,13\%, RAM rata-rata 36,56 MB). Dengan demikian, aplikasi mampu mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable}, didukung pelaporan dalam format JSON dan PDF serta otomasi pengujian melalui \textit{Continuous Integration} (GitHub Actions).
+Penelitian ini berhasil merancang dan mengimplementasikan HomeGuard, sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (\textit{opt-in}), dan pemetaan kerentanan berbasis OWASP IoT Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan mudah digunakan oleh pengguna rumahan. Pengujian dilaksanakan dalam tiga lapisan: (1) \textbf{pengujian unit} (36/36 lulus, \texttt{pytest}) memverifikasi kebenaran logika modul secara terisolasi; (2) \textbf{pengujian fungsional} menggunakan CLI dan skrip layanan tiruan (\texttt{demo\_server.py}) pada \texttt{127.0.0.1} memvalidasi alur \textit{end-to-end} --- ketiga layanan (Telnet, HTTP usang, RTSP) terdeteksi dengan pemetaan OWASP yang benar (\textit{3/3 match}) dan skor host dihitung tepat (99/100); (3) \textbf{pengujian lingkungan lab virtual} (5 VM, subnet \texttt{192.168.56.0/24}) menghasilkan F1-\textit{score} deteksi port 0,8780 (\textit{precision} 0,8182, \textit{recall} 0,9474) dengan waktu pemindaian rata-rata 3,96 detik per host ($\sigma = 0{,}04$ detik) dan konsumsi sumber daya yang ringan (CPU rata-rata 4,13\%, RAM rata-rata 36,56 MB). Dengan demikian, aplikasi mampu mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable}, didukung pelaporan dalam format JSON dan PDF serta otomasi pengujian melalui \textit{Continuous Integration} (GitHub Actions).
 
 \subsection{Saran}
 
