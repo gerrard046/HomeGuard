@@ -500,48 +500,81 @@ Pengujian unit dilaksanakan menggunakan \texttt{pytest} terhadap enam modul inti
 
 Untuk memvalidasi alur \textit{end-to-end} secara terkendali, dijalankan sebuah layanan tiruan yang mengirimkan banner usang \texttt{lighttpd/1.4.35} pada sebuah port HTTP. HomeGuard berhasil: (a) mendeteksi port terbuka; (b) mengambil \textit{banner}; (c) mengenali komponen usang sehingga menambahkan kategori I5; dan (d) menaikkan \textit{severity} dari TINGGI menjadi KRITIS, menghasilkan skor host 93. Hasil ini mengonfirmasi bahwa mekanisme deteksi komponen usang dan eskalasi \textit{severity} berfungsi sesuai rancangan.
 
-\subsection{Pengujian pada Jaringan Rumah}
+\subsection{Pengujian pada Lingkungan Lab Virtual}
 
-Pengujian dunia nyata dilakukan pada jaringan Wi-Fi rumah peneliti terhadap delapan perangkat IoT. Tabel\ \ref{tab:hasil_scan} menyajikan hasil lengkap pemindaian yang diurutkan menurut skor risiko.
+Pengujian pada lingkungan terkontrol dilaksanakan pada jaringan lab virtual (\textit{host-only network} VirtualBox, subnet \texttt{192.168.56.0/24}) yang terdiri atas lima mesin virtual yang mereplikasi perilaku jaringan perangkat IoT (CCTV, Router, Smart TV, Printer, Smart Plug) dan satu host kontrol. Setiap VM dikonfigurasi untuk membuka port yang representatif sesuai jenis perangkatnya. Pengujian dilakukan dalam dua sesi independen untuk memverifikasi konsistensi hasil.
+
+\subsubsection{Akurasi Deteksi Perangkat dan Port}
+
+Tabel\ \ref{tab:metrik_deteksi} menyajikan metrik akurasi deteksi perangkat dan port yang dihitung berdasarkan nilai \textit{True Positive} (TP), \textit{False Positive} (FP), dan \textit{False Negative} (FN).
 
 \begin{table}[htbp]
-\caption{Hasil Pemindaian Jaringan Rumah (Lengkap)}
-\label{tab:hasil_scan}
+\caption{Metrik Akurasi Deteksi Port per Perangkat (Lab Virtual)}
+\label{tab:metrik_deteksi}
 \renewcommand{\arraystretch}{1.2}
-\begin{tabularx}{\columnwidth}{|X|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Perangkat} & \textbf{OWASP} & \textbf{Severity} & \textbf{Skor} \\
+\textbf{Perangkat} & \textbf{TP} & \textbf{FP} & \textbf{FN} & \textbf{P} & \textbf{F1} \\
 \hline
-Kamera IP (Hikvision) & I1,I2,I3,I7 & KRITIS & 96 \\
+CCTV IP Camera   & 4 & 1 & 0 & 0,80 & 0,8889 \\
 \hline
-Router Wi-Fi (TP-Link) & I1,I2,I7,I9 & KRITIS & 90 \\
+Wireless Router  & 4 & 0 & 0 & 1,00 & 1,0000 \\
 \hline
-Smart TV (Samsung) & I3,I7 & TINGGI & 78 \\
+Smart TV         & 3 & 1 & 1 & 0,75 & 0,7500 \\
 \hline
-Printer (HP) & I2,I3,I7 & TINGGI & 75 \\
+Network Printer  & 5 & 1 & 0 & 0,83 & 0,9091 \\
 \hline
-Smart Plug (TP-Link) & I2 & SEDANG & 53 \\
+Smart Plug       & 2 & 1 & 0 & 0,67 & 0,8000 \\
 \hline
-Smart Speaker (Google) & I2 & SEDANG & 50 \\
+\textbf{Total}   & \textbf{18} & \textbf{4} & \textbf{1} & \textbf{0,82} & \textbf{0,8780} \\
 \hline
-SBC (Raspberry Pi) & I2 & SEDANG & 50 \\
-\hline
-Laptop pengguna & --- & AMAN & 0 \\
-\hline
-\end{tabularx}
+\end{tabular}
 \end{table}
 
-Dari delapan perangkat yang diuji, tujuh perangkat (87,5\%) terdeteksi memiliki minimal satu temuan kerentanan jaringan, sementara satu perangkat (laptop kontrol pengguna) dinilai AMAN. Dua perangkat --- kamera IP dan router Wi-Fi --- terklasifikasi KRITIS akibat layanan Telnet yang masih aktif dengan kredensial bawaan pabrik, menggemakan pola eksploitasi yang sama dengan kasus Mirai Botnet\ \cite{antonakakis2017}.
+Pada tingkat deteksi perangkat, HomeGuard memperoleh \textit{precision} 0,8333, \textit{recall} 1,0, dan F1-\textit{score} 0,9091 --- semua perangkat IoT berhasil ditemukan (FN = 0) dengan satu \textit{false positive} berupa host kontrol yang ikut terdeteksi. Pada tingkat deteksi port, F1-\textit{score} keseluruhan mencapai 0,8780 dengan \textit{recall} 0,9474, menunjukkan bahwa hampir seluruh port berisiko berhasil diidentifikasi.
+
+\subsubsection{Kinerja Waktu Pemindaian}
+
+Pengukuran kecepatan dilaksanakan dalam 5 pengulangan (setelah 1 \textit{warm-up}) pada subnet yang sama. Tabel\ \ref{tab:kecepatan} merangkum hasilnya.
+
+\begin{table}[htbp]
+\caption{Kinerja Waktu Pemindaian (5 Repetisi, 6 Host)}
+\label{tab:kecepatan}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Metrik} & \textbf{Sesi 1} & \textbf{Sesi 2} \\
+\hline
+Rata-rata total (detik)   & 23,77 & 23,76 \\
+\hline
+Standar deviasi (detik)   & 0,04  & 0,03  \\
+\hline
+Waktu per host (detik)    & 3,96  & 3,96  \\
+\hline
+Tercepat (detik)          & 23,74 & 23,74 \\
+\hline
+Terlambat (detik)         & 23,84 & 23,80 \\
+\hline
+\textit{Cold start} (CVE) & 99,77 & 98,98 \\
+\hline
+\end{tabular}
+\end{table}
+
+Waktu pemindaian bersifat sangat stabil ($\sigma \leq 0{,}04$ detik) dengan rata-rata 3,96 detik per host. Perbedaan signifikan antara \textit{cold start} ($\approx$99 detik) dan pemindaian berikutnya ($\approx$23,77 detik) disebabkan oleh pengunduhan data CVE dari NVD API pada percobaan pertama; data kemudian di-\textit{cache} sehingga pemindaian selanjutnya jauh lebih cepat.
+
+\subsubsection{Konsumsi Sumber Daya}
+
+Pemantauan sumber daya selama pemindaian menunjukkan bahwa HomeGuard beroperasi dengan jejak yang sangat ringan: rata-rata penggunaan CPU 4,13\% (puncak 28,1\%) dan konsumsi RAM rata-rata 36,56 MB (puncak 37,32 MB) pada sistem dengan 12 \textit{core} dan 23.886 MB RAM. Profil ini mengonfirmasi bahwa aplikasi dapat berjalan di komputer rumahan dengan spesifikasi minimal.
 
 % =========================================================
 \section{Pembahasan}
 % =========================================================
 
-Hasil pengujian menunjukkan bahwa HomeGuard mampu menjalankan keseluruhan \textit{pipeline} penemuan host hingga pemetaan kerentanan secara otomatis dan menghasilkan laporan yang \textit{actionable}, lengkap dengan rekomendasi mitigasi per temuan. Pendekatan \textit{rule-based} berbasis OWASP IoT Top 10 yang dipadukan dengan skoring heuristik memungkinkan prioritisasi risiko yang mudah dipahami pengguna non-teknis. Konsisten dengan temuan Neshenko et al.\ \cite{neshenko2019} bahwa mayoritas eksploitasi IoT menargetkan lapisan jaringan, kategori yang paling sering muncul pada pengujian adalah I2 (\textit{Insecure Network Services}), diikuti I7 (\textit{Insecure Data Transfer and Storage}). Penambahan modul pemeriksaan TLS/HTTPS dan kredensial bawaan memperkuat cakupan deteksi pada kategori I7, I3, I1, dan I9 yang sebelumnya tidak terjangkau hanya oleh pemindaian port.
+Hasil pengujian menunjukkan bahwa HomeGuard mampu menjalankan keseluruhan \textit{pipeline} penemuan host hingga pemetaan kerentanan secara otomatis dan menghasilkan laporan yang \textit{actionable}, lengkap dengan rekomendasi mitigasi per temuan. Pada lingkungan lab virtual, aplikasi mencapai F1-\textit{score} deteksi port sebesar 0,8780 dengan \textit{recall} 0,9474 --- artinya hampir seluruh port berisiko berhasil teridentifikasi. Pendekatan \textit{rule-based} berbasis OWASP IoT Top 10 yang dipadukan dengan skoring heuristik memungkinkan prioritisasi risiko yang mudah dipahami pengguna non-teknis. Konsisten dengan temuan Neshenko et al.\ \cite{neshenko2019} bahwa mayoritas eksploitasi IoT menargetkan lapisan jaringan, kategori yang paling sering muncul pada pengujian adalah I2 (\textit{Insecure Network Services}), diikuti I7 (\textit{Insecure Data Transfer and Storage}).
 
-Distribusi tingkat keparahan pada pengujian jaringan rumah menunjukkan pola yang konsisten dengan laporan Bitdefender\ \cite{bitdefender2024}: perangkat lawas atau \textit{entry-level} (kamera IP, router bawaan ISP) cenderung memiliki kerentanan paling kritis, sedangkan perangkat dengan ekosistem tertutup yang dikelola produsen besar menunjukkan \textit{severity} yang relatif lebih rendah.
+Dari sisi kinerja, waktu pemindaian rata-rata 3,96 detik per host dengan standar deviasi yang sangat kecil ($\sigma = 0{,}04$ detik), mencerminkan konsistensi yang tinggi. Lonjakan waktu pada \textit{cold start} ($\approx$99 detik) disebabkan oleh pengunduhan data CVE dari NVD API, bukan oleh proses pemindaian itu sendiri. Konsumsi sumber daya yang rendah (CPU rata-rata 4,13\%, RAM rata-rata 36,56 MB) mengonfirmasi bahwa aplikasi dapat berjalan pada komputer rumahan tanpa beban yang berarti.
 
-Keterbatasan utama prototipe ini meliputi: cakupan katalog port yang masih terbatas, basis data OUI berupa \textit{seed} (belum lengkap), deteksi komponen usang berbasis pola \textit{signature} statis yang belum terkorelasi dengan basis data CVE secara langsung, serta ukuran sampel pengujian dunia nyata (8 perangkat pada 1 jaringan rumah) yang masih terbatas untuk generalisasi statistik.
+Keterbatasan utama penelitian ini meliputi: (1) pengujian dilaksanakan pada lingkungan lab virtual, sehingga validasi pada perangkat IoT fisik nyata di jaringan domestik aktual masih diperlukan; (2) cakupan katalog port yang masih terbatas; (3) basis data OUI berupa \textit{seed} yang belum lengkap; dan (4) deteksi komponen usang berbasis \textit{signature} statis yang belum terkorelasi langsung dengan NVD/CVE secara \textit{real-time}.
 
 % =========================================================
 \section{Kesimpulan dan Saran}
@@ -549,11 +582,11 @@ Keterbatasan utama prototipe ini meliputi: cakupan katalog port yang masih terba
 
 \subsection{Kesimpulan}
 
-Penelitian ini berhasil merancang dan mengimplementasikan HomeGuard, sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (\textit{opt-in}), dan pemetaan kerentanan berbasis OWASP IoT Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan mudah digunakan oleh pengguna rumahan. Pengujian unit (36/36 lulus) dan pengujian fungsional terkontrol membuktikan kebenaran logika pemetaan kerentanan dan perhitungan skor risiko. Pengujian pada jaringan rumah nyata terhadap delapan perangkat IoT menunjukkan bahwa 87,5\% perangkat memiliki minimal satu temuan kerentanan, dengan kategori I2 sebagai temuan paling dominan. Dengan demikian, aplikasi mampu mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable}, didukung pelaporan dalam format JSON dan PDF serta otomasi pengujian melalui \textit{Continuous Integration} (GitHub Actions).
+Penelitian ini berhasil merancang dan mengimplementasikan HomeGuard, sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (\textit{opt-in}), dan pemetaan kerentanan berbasis OWASP IoT Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan mudah digunakan oleh pengguna rumahan. Pengujian unit (36/36 lulus) dan pengujian fungsional terkontrol membuktikan kebenaran logika pemetaan kerentanan dan perhitungan skor risiko. Pengujian pada lingkungan lab virtual (5 VM IoT, subnet \texttt{192.168.56.0/24}) menghasilkan F1-\textit{score} deteksi port 0,8780 (\textit{precision} 0,8182, \textit{recall} 0,9474) dengan waktu pemindaian rata-rata 3,96 detik per host ($\sigma = 0{,}04$ detik) dan konsumsi sumber daya yang ringan (CPU rata-rata 4,13\%, RAM rata-rata 36,56 MB). Dengan demikian, aplikasi mampu mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable}, didukung pelaporan dalam format JSON dan PDF serta otomasi pengujian melalui \textit{Continuous Integration} (GitHub Actions).
 
 \subsection{Saran}
 
-Pengembangan lanjutan yang disarankan meliputi: (1) korelasi versi komponen dengan basis data CVE (kategori I5) melalui NVD API agar deteksi komponen usang lebih presisi; (2) pemutakhiran basis data OUI IEEE secara lengkap untuk meningkatkan akurasi identifikasi vendor; (3) perluasan pengujian dunia nyata pada lebih banyak jaringan rumah guna memperkuat generalisasi statistik; (4) penambahan dukungan deteksi protokol IoT non-TCP (mis. Zigbee, Z-Wave, BLE); dan (5) pengayaan basis aturan klasifikasi perangkat dengan teknik \textit{machine learning} ringan untuk meningkatkan akurasi \textit{fingerprinting}.
+Pengembangan lanjutan yang disarankan meliputi: (1) validasi pada perangkat IoT fisik nyata di jaringan rumah domestik aktual guna menguji generalisasi hasil yang diperoleh pada lingkungan lab virtual; (2) korelasi versi komponen dengan basis data CVE/NVD secara \textit{real-time} untuk meningkatkan presisi deteksi komponen usang (kategori I5); (3) pemutakhiran basis data OUI IEEE secara lengkap untuk meningkatkan akurasi identifikasi vendor; (4) penambahan dukungan deteksi protokol IoT non-TCP (mis. Zigbee, Z-Wave, BLE); dan (5) pengayaan basis aturan klasifikasi perangkat dengan teknik \textit{machine learning} ringan untuk meningkatkan akurasi \textit{fingerprinting}.
 
 % =========================================================
 %  REFERENCES
