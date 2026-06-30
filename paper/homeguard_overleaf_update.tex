@@ -549,21 +549,21 @@ Tabel\ \ref{tab:metrik_deteksi} menyajikan metrik akurasi deteksi perangkat dan 
 \caption{Metrik Akurasi Deteksi Port per Perangkat (Lab Virtual)}
 \label{tab:metrik_deteksi}
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|l|c|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|c|}
 \hline
-\textbf{Perangkat} & \textbf{TP} & \textbf{FP} & \textbf{FN} & \textbf{P} & \textbf{F1} \\
+\textbf{Perangkat} & \textbf{TP} & \textbf{FP} & \textbf{FN} & \textbf{P} & \textbf{R} & \textbf{F1} \\
 \hline
-CCTV IP Camera   & 4 & 1 & 0 & 0,80 & 0,8889 \\
+CCTV IP Camera   & 4 & 1 & 0 & 0,80 & 1,00 & 0,8889 \\
 \hline
-Wireless Router  & 4 & 0 & 0 & 1,00 & 1,0000 \\
+Wireless Router  & 4 & 0 & 0 & 1,00 & 1,00 & 1,0000 \\
 \hline
-Smart TV         & 3 & 1 & 1 & 0,75 & 0,7500 \\
+Smart TV         & 3 & 1 & 1 & 0,75 & 0,75 & 0,7500 \\
 \hline
-Network Printer  & 5 & 1 & 0 & 0,83 & 0,9091 \\
+Network Printer  & 5 & 1 & 0 & 0,83 & 1,00 & 0,9091 \\
 \hline
-Smart Plug       & 2 & 1 & 0 & 0,67 & 0,8000 \\
+Smart Plug       & 2 & 1 & 0 & 0,67 & 1,00 & 0,8000 \\
 \hline
-\textbf{Total}   & \textbf{18} & \textbf{4} & \textbf{1} & \textbf{0,82} & \textbf{0,8780} \\
+\textbf{Total}   & \textbf{18} & \textbf{4} & \textbf{1} & \textbf{0,82} & \textbf{0,95} & \textbf{0,8780} \\
 \hline
 \end{tabular}
 \end{table}
@@ -582,26 +582,57 @@ Pengukuran kecepatan dilaksanakan dalam 5 pengulangan (setelah 1 \textit{warm-up
 \hline
 \textbf{Metrik} & \textbf{Sesi 1} & \textbf{Sesi 2} \\
 \hline
-Rata-rata total (detik)   & 23,77 & 23,76 \\
+\textit{Discovery} rata-rata (detik)     & 17,64 & 17,63 \\
 \hline
-Standar deviasi (detik)   & 0,04  & 0,03  \\
+\textit{Scan+Analisis} rata-rata (detik) & 6,13  & 6,13  \\
 \hline
-Waktu per host (detik)    & 3,96  & 3,96  \\
+Total rata-rata (detik)                  & 23,77 & 23,76 \\
 \hline
-Tercepat (detik)          & 23,74 & 23,74 \\
+Standar deviasi (detik)                  & 0,04  & 0,03  \\
 \hline
-Terlambat (detik)         & 23,84 & 23,80 \\
+Waktu per host (detik)                   & 3,96  & 3,96  \\
 \hline
-\textit{Cold start} (CVE) & 99,77 & 98,98 \\
+Tercepat (detik)                         & 23,74 & 23,74 \\
+\hline
+Terlambat (detik)                        & 23,84 & 23,80 \\
+\hline
+\textit{Cold start} / warm-up (detik)   & 99,77 & 98,98 \\
 \hline
 \end{tabular}
 \end{table}
 
-Waktu pemindaian bersifat sangat stabil ($\sigma \leq 0{,}04$ detik) dengan rata-rata 3,96 detik per host. Perbedaan signifikan antara \textit{cold start} ($\approx$99 detik) dan pemindaian berikutnya ($\approx$23,77 detik) disebabkan oleh pengunduhan data CVE dari NVD API pada percobaan pertama; data kemudian di-\textit{cache} sehingga pemindaian selanjutnya jauh lebih cepat.
+Waktu pemindaian bersifat sangat stabil ($\sigma \leq 0{,}04$ detik) dengan rata-rata 3,96 detik per host. Dari total waktu tersebut, fase \textit{network discovery} menyumbang $\approx$17,63 detik (mengirim TCP ping ke seluruh subnet) dan fase \textit{scan+analisis} $\approx$6,13 detik. Perbedaan signifikan antara \textit{cold start} ($\approx$99 detik) dan pemindaian berikutnya ($\approx$23,77 detik) disebabkan oleh pengunduhan data CVE dari NVD API pada percobaan pertama (warm-up); data kemudian di-\textit{cache} sehingga fase \textit{scan+analisis} turun dari $\approx$81 detik menjadi $\approx$6 detik pada percobaan berikutnya.
 
 \subsubsection{Konsumsi Sumber Daya}
 
-Pemantauan sumber daya selama pemindaian menunjukkan bahwa HomeGuard beroperasi dengan jejak yang sangat ringan: rata-rata penggunaan CPU 4,13\% (puncak 28,1\%) dan konsumsi RAM rata-rata 36,56 MB (puncak 37,32 MB) pada sistem dengan 12 \textit{core} dan 23.886 MB RAM. Profil ini mengonfirmasi bahwa aplikasi dapat berjalan di komputer rumahan dengan spesifikasi minimal.
+Pemantauan sumber daya selama pemindaian dilaksanakan dalam dua sesi independen. Tabel~\ref{tab:resource} merangkum hasil pengukuran per sesi (trial pertama setiap sesi merupakan \textit{cold start} dan tidak dihitung ke rata-rata operasional).
+
+\begin{table}[htbp]
+\caption{Konsumsi Sumber Daya Selama Pemindaian (6 Host)}
+\label{tab:resource}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Metrik} & \textbf{Sesi 1 ($n$=3)$^\dagger$} & \textbf{Sesi 2 ($n$=4)} \\
+\hline
+CPU rata-rata (\%) & 4,4 & 4,9 \\
+\hline
+CPU puncak (\%)    & 25,0 & 25,0 \\
+\hline
+RAM rata-rata (MB) & 36,7 & 37,0 \\
+\hline
+RAM puncak (MB)    & 37,0 & 37,3 \\
+\hline
+\textit{Cold start} CPU avg (\%) & 1,3 & 1,2 \\
+\hline
+\textit{Cold start} RAM avg (MB) & 34,7 & 34,8 \\
+\hline
+\multicolumn{3}{|l|}{$^\dagger$ 1 percobaan dikecualikan (CPU maks 2605,9\% --- artefak pengukuran).} \\
+\hline
+\end{tabular}
+\end{table}
+
+HomeGuard beroperasi dengan jejak yang sangat ringan: rata-rata CPU 4,4--4,9\% (puncak 25,0\%) dan RAM 36,7--37,0 MB (puncak 37,3 MB) pada sistem dengan 12 \textit{core} dan 23.886 MB RAM. Perbedaan kecil antar sesi mengonfirmasi konsistensi hasil. Profil ini membuktikan bahwa aplikasi dapat berjalan di komputer rumahan dengan spesifikasi minimal.
 
 % =========================================================
 \section{Pembahasan}
@@ -609,7 +640,7 @@ Pemantauan sumber daya selama pemindaian menunjukkan bahwa HomeGuard beroperasi 
 
 Hasil pengujian tiga lapisan menunjukkan bahwa HomeGuard mampu memenuhi tujuan rancangannya secara konsisten. Pada lapisan fungsional (CLI + \texttt{demo\_server.py}), seluruh tiga layanan tiruan --- Telnet, HTTP usang, dan RTSP --- terdeteksi dengan pemetaan OWASP yang tepat (\textit{3/3 match}), mekanisme eskalasi \textit{severity} akibat komponen usang berfungsi sesuai rancangan, dan skor risiko host dihitung dengan benar (skor 99). Pengujian ini memverifikasi kebenaran logika inti deteksi pada kondisi yang terkontrol sepenuhnya. Pada lapisan lingkungan lab virtual (5 VM, subnet \texttt{192.168.56.0/24}), aplikasi mencapai F1-\textit{score} deteksi port sebesar 0,8780 dengan \textit{recall} 0,9474 --- artinya hampir seluruh port berisiko pada topologi jaringan yang lebih realistis berhasil teridentifikasi. Pendekatan \textit{rule-based} berbasis OWASP IoT Top 10 yang dipadukan dengan skoring heuristik memungkinkan prioritisasi risiko yang mudah dipahami pengguna non-teknis. Konsisten dengan temuan Neshenko et al.\ \cite{neshenko2019} bahwa mayoritas eksploitasi IoT menargetkan lapisan jaringan, kategori yang paling sering muncul pada kedua skenario pengujian adalah I2 (\textit{Insecure Network Services}), diikuti I7 (\textit{Insecure Data Transfer and Storage}).
 
-Dari sisi kinerja, waktu pemindaian rata-rata 3,96 detik per host dengan standar deviasi yang sangat kecil ($\sigma = 0{,}04$ detik), mencerminkan konsistensi yang tinggi. Lonjakan waktu pada \textit{cold start} ($\approx$99 detik) disebabkan oleh pengunduhan data CVE dari NVD API, bukan oleh proses pemindaian itu sendiri. Konsumsi sumber daya yang rendah (CPU rata-rata 4,13\%, RAM rata-rata 36,56 MB) mengonfirmasi bahwa aplikasi dapat berjalan pada komputer rumahan tanpa beban yang berarti.
+Dari sisi kinerja, waktu pemindaian rata-rata 3,96 detik per host dengan standar deviasi yang sangat kecil ($\sigma \leq 0{,}04$ detik), mencerminkan konsistensi yang tinggi. Fase \textit{discovery} mendominasi waktu total ($\approx$17,63 detik) karena mengirim TCP ping ke seluruh /24 subnet, sedangkan fase \textit{scan+analisis} hanya $\approx$6,13 detik. Lonjakan waktu pada \textit{cold start} ($\approx$99 detik) disebabkan oleh pengunduhan data CVE dari NVD API, bukan oleh proses pemindaian itu sendiri. Konsumsi sumber daya yang rendah (CPU rata-rata 4,4--4,9\%, puncak 25,0\%; RAM rata-rata 36,7--37,0 MB, puncak 37,3 MB) mengonfirmasi bahwa aplikasi dapat berjalan pada komputer rumahan tanpa beban yang berarti.
 
 Keterbatasan utama penelitian ini meliputi: (1) pengujian dilaksanakan pada lingkungan lab virtual, sehingga validasi pada perangkat IoT fisik nyata di jaringan domestik aktual masih diperlukan; (2) cakupan katalog port yang masih terbatas; (3) basis data OUI berupa \textit{seed} yang belum lengkap; dan (4) deteksi komponen usang berbasis \textit{signature} statis yang belum terkorelasi langsung dengan NVD/CVE secara \textit{real-time}.
 
@@ -619,7 +650,7 @@ Keterbatasan utama penelitian ini meliputi: (1) pengujian dilaksanakan pada ling
 
 \subsection{Kesimpulan}
 
-Penelitian ini berhasil merancang dan mengimplementasikan HomeGuard, sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (\textit{opt-in}), dan pemetaan kerentanan berbasis OWASP IoT Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan mudah digunakan oleh pengguna rumahan. Pengujian dilaksanakan dalam tiga lapisan: (1) \textbf{pengujian unit} (36/36 lulus, \texttt{pytest}) memverifikasi kebenaran logika modul secara terisolasi; (2) \textbf{pengujian fungsional} menggunakan CLI dan skrip layanan tiruan (\texttt{demo\_server.py}) pada \texttt{127.0.0.1} memvalidasi alur \textit{end-to-end} --- ketiga layanan (Telnet, HTTP usang, RTSP) terdeteksi dengan pemetaan OWASP yang benar (\textit{3/3 match}) dan skor host dihitung tepat (99/100); (3) \textbf{pengujian lingkungan lab virtual} (5 VM, subnet \texttt{192.168.56.0/24}) menghasilkan F1-\textit{score} deteksi port 0,8780 (\textit{precision} 0,8182, \textit{recall} 0,9474) dengan waktu pemindaian rata-rata 3,96 detik per host ($\sigma = 0{,}04$ detik) dan konsumsi sumber daya yang ringan (CPU rata-rata 4,13\%, RAM rata-rata 36,56 MB). Dengan demikian, aplikasi mampu mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable}, didukung pelaporan dalam format JSON dan PDF serta otomasi pengujian melalui \textit{Continuous Integration} (GitHub Actions).
+Penelitian ini berhasil merancang dan mengimplementasikan HomeGuard, sebuah aplikasi pemindai keamanan jaringan rumah berbasis Python yang mengintegrasikan modul \textit{network discovery}, \textit{port scanning}, \textit{service detection}, klasifikasi perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan (\textit{opt-in}), dan pemetaan kerentanan berbasis OWASP IoT Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan mudah digunakan oleh pengguna rumahan. Pengujian dilaksanakan dalam tiga lapisan: (1) \textbf{pengujian unit} (36/36 lulus, \texttt{pytest}) memverifikasi kebenaran logika modul secara terisolasi; (2) \textbf{pengujian fungsional} menggunakan CLI dan skrip layanan tiruan (\texttt{demo\_server.py}) pada \texttt{127.0.0.1} memvalidasi alur \textit{end-to-end} --- ketiga layanan (Telnet, HTTP usang, RTSP) terdeteksi dengan pemetaan OWASP yang benar (\textit{3/3 match}) dan skor host dihitung tepat (99/100); (3) \textbf{pengujian lingkungan lab virtual} (5 VM, subnet \texttt{192.168.56.0/24}) menghasilkan F1-\textit{score} deteksi port 0,8780 (\textit{precision} 0,8182, \textit{recall} 0,9474) dengan waktu pemindaian rata-rata 3,96 detik per host ($\sigma \leq 0{,}04$ detik, Discovery $\approx$17,63s + Scan+Analisis $\approx$6,13s) dan konsumsi sumber daya yang ringan (CPU rata-rata 4,4--4,9\%, puncak 25,0\%; RAM rata-rata 36,7--37,0 MB, puncak 37,3 MB). Dengan demikian, aplikasi mampu mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi mitigasi yang \textit{actionable}, didukung pelaporan dalam format JSON dan PDF serta otomasi pengujian melalui \textit{Continuous Integration} (GitHub Actions).
 
 \subsection{Saran}
 
