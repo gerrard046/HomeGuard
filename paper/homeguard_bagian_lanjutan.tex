@@ -252,17 +252,20 @@ referensi OWASP IoT Top 10.
 \section{Pengujian dan Hasil}
 
 \subsection{Pengujian Unit}
-Pengujian unit dilaksanakan menggunakan \texttt{pytest} terhadap dua modul
-inti, yaitu modul pemetaan kerentanan (\texttt{vulnmap}) dan modul
-penemuan host (\texttt{discovery}), dengan total 12 kasus uji. Seluruh
-kasus uji \textbf{lulus} (12/12), sebagaimana dirangkum pada
-Tabel~\ref{tab:unit}. Pengujian ini memvalidasi kebenaran logika pemetaan
-OWASP, perhitungan skor, normalisasi MAC, \textit{vendor lookup},
-\textit{parsing} tabel ARP, dan ekspansi CIDR.
+Pengujian unit dilaksanakan menggunakan \texttt{pytest} terhadap enam
+modul inti, yaitu pemetaan kerentanan (\texttt{vulnmap}), penemuan host
+(\texttt{discovery}), klasifikasi perangkat (\texttt{classify}),
+pemindaian port (\texttt{portscan}), orkestrasi pemindaian
+(\texttt{scanner}), dan pemeriksaan TLS (\texttt{tlscheck}), dengan total
+36 kasus uji. Seluruh kasus uji \textbf{lulus} (36/36); kasus-kasus uji
+yang representatif dirangkum pada Tabel~\ref{tab:unit}. Pengujian ini
+memvalidasi antara lain kebenaran logika pemetaan OWASP, perhitungan
+skor, normalisasi MAC, \textit{vendor lookup}, \textit{parsing} tabel
+ARP, dan ekspansi CIDR.
 
 \begin{table}[ht]
     \centering
-    \caption{Ringkasan Hasil Pengujian Unit (12/12 Lulus)}
+    \caption{Ringkasan Kasus Uji Representatif (Total: 36/36 Lulus)}
     \label{tab:unit}
     \begin{tabular}{|p{4.6cm}|c|}
         \hline
@@ -346,11 +349,13 @@ mengintegrasikan modul \textit{network discovery}, \textit{port scanning},
 \textit{service detection}, dan pemetaan kerentanan berbasis OWASP IoT
 Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar
 Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan
-mudah digunakan oleh pengguna rumahan. Pengujian unit (12/12 lulus) dan
+mudah digunakan oleh pengguna rumahan. Pengujian unit (36/36 lulus) dan
 pengujian fungsional terkontrol membuktikan kebenaran logika pemetaan
 kerentanan dan perhitungan skor risiko. Dengan demikian, aplikasi mampu
 mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi
-mitigasi yang \textit{actionable}.
+mitigasi yang \textit{actionable}. Seluruh kode sumber, kasus uji, dan
+dokumentasi HomeGuard tersedia secara terbuka pada repositori GitHub:
+\url{https://github.com/gerrard046/HomeGuard} \cite{b23}.
 
 \subsection{Saran}
 Pengembangan lanjutan yang disarankan meliputi: (1) integrasi
