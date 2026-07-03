@@ -1,0 +1,43 @@
+{
+  "_keterangan": "Ground truth lingkungan lab virtual HomeGuard. Setiap entri mereplikasi satu jenis perangkat IoT dengan port yang WAJIB terbuka. Dipakai sebagai acuan kebenaran (ground truth) oleh tools/measure_detection.py untuk menghitung TP/FP/FN. Sesuai Tabel 'Daftar VM pada Lingkungan Lab Virtual' pada paper (subnet 192.168.56.0/24). Untuk reproduksi lokal di satu mesin, alamat 192.168.56.x dapat dipetakan ke loopback 127.0.0.x.",
+  "subnet": "192.168.56.0/24",
+  "loopback_map": "192.168.56.X -> 127.0.0.X (untuk uji lokal satu mesin di Linux)",
+  "devices": [
+    {
+      "name": "CCTV IP Camera",
+      "ip": "192.168.56.20",
+      "loopback_ip": "127.0.0.20",
+      "ports": [23, 80, 554, 8080]
+    },
+    {
+      "name": "Wireless Router",
+      "ip": "192.168.56.30",
+      "loopback_ip": "127.0.0.30",
+      "ports": [22, 80, 443, 1900]
+    },
+    {
+      "name": "Smart TV",
+      "ip": "192.168.56.40",
+      "loopback_ip": "127.0.0.40",
+      "ports": [1900, 5555, 8080, 8443]
+    },
+    {
+      "name": "Network Printer",
+      "ip": "192.168.56.50",
+      "loopback_ip": "127.0.0.50",
+      "ports": [21, 80, 443, 631, 9100]
+    },
+    {
+      "name": "Smart Plug",
+      "ip": "192.168.56.60",
+      "loopback_ip": "127.0.0.60",
+      "ports": [80, 1883]
+    }
+  ],
+  "control_host": {
+    "name": "Host Kontrol",
+    "ip": "192.168.56.101",
+    "loopback_ip": "127.0.0.101",
+    "ports": []
+  }
+}

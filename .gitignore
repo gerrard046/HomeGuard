@@ -26,6 +26,8 @@ htmlcov/
 # Laporan hasil pemindaian (jangan commit data jaringan nyata)
 *.json
 !**/data/*.json
+!lab/ground_truth.json
+!.zenodo.json
 laporan*.json
 homeguard_laporan.json
 

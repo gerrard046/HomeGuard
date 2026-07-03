@@ -40,39 +40,31 @@ Identifikasi Kerentanan Perangkat IoT pada Jaringan Wi-Fi Domestik}
 
 % =========================================================
 \begin{abstract}
-Pertumbuhan pesat perangkat Internet of Things (IoT) pada lingkungan
-rumah tangga telah menciptakan permukaan serangan (\textit{attack surface})
-baru yang signifikan dalam ekosistem jaringan domestik. Perangkat seperti
-\textit{smart TV}, kamera pengintai (CCTV), \textit{smart plug}, dan asisten
-virtual yang terhubung ke jaringan Wi-Fi rumah kerap memiliki kerentanan
-keamanan yang tidak disadari oleh penggunanya. Kesenjangan antara
-kompleksitas ancaman dan kapabilitas pengguna menciptakan paradoks
-keamanan: perangkat yang rentan terus beroperasi bukan karena pengguna
-tidak peduli, melainkan karena mereka tidak memiliki alat yang mampu
-menjembatani kompleksitas teknis dengan kemampuan pemahaman
-pengguna awam. Penelitian ini bertujuan untuk merancang dan
-mengimplementasikan aplikasi pemindai keamanan jaringan rumah berbasis
-Python bernama HomeGuard yang berfungsi sebagai jembatan tersebut.
-HomeGuard mengintegrasikan modul \textit{network discovery}, \textit{port
-scanning}, \textit{service detection}, klasifikasi tipe perangkat, pemeriksaan
-TLS/HTTPS, pemeriksaan kredensial bawaan (opsional dan \textit{opt-in}),
-serta pemetaan kerentanan berdasarkan OWASP IoT Top 10, dilengkapi
-pelaporan JSON dan PDF dengan rekomendasi mitigasi dalam Bahasa
-Indonesia. Metode penelitian yang digunakan adalah \textit{Research and
-Development} (R\&D) dengan pendekatan \textit{prototyping} dalam paradigma
-\textit{design science research}. Pengujian dilaksanakan dalam tiga lapisan
-berjenjang: pengujian unit (36/36 kasus uji lulus dari 6 modul), pengujian
-fungsional pada \textit{localhost} menggunakan layanan IoT tiruan, serta
-pengujian lingkungan lab virtual menggunakan 5 mesin virtual (VM) pada
-subnet \texttt{192.168.56.0/24}. Hasil pengujian menunjukkan F1-\textit{score}
-deteksi port 0,8780 (\textit{recall} 0,9474), waktu pemindaian rata-rata 3,96
-detik per \textit{host} ($\sigma{=}0{,}04$ detik), dan konsumsi sumber daya
-ringan (CPU rata-rata 4,13\%, RAM rata-rata 36,56 MB). Penelitian ini
-berkontribusi pada peningkatan kesadaran keamanan siber tingkat rumah
-tangga melalui pendekatan integrasi yang mengisi celah antara perkakas
-profesional yang terlalu teknis dan aplikasi konsumen yang tidak transparan.
-Seluruh kode sumber HomeGuard tersedia secara terbuka di
-\url{https://github.com/gerrard046/HomeGuard}.
+Pertumbuhan pesat perangkat Internet of Things (IoT) rumah tangga
+menciptakan permukaan serangan (\textit{attack surface}) baru yang
+signifikan pada jaringan domestik. Perangkat seperti \textit{smart TV},
+CCTV, dan \textit{smart plug} kerap menyimpan kerentanan yang tidak
+disadari penggunanya. Kesenjangan antara kompleksitas ancaman dan
+kapabilitas pengguna menimbulkan paradoks keamanan: perangkat rentan
+terus beroperasi bukan karena pengguna tidak peduli, melainkan karena
+tiadanya alat yang menjembatani kompleksitas teknis dengan pemahaman
+pengguna awam. Penelitian ini merancang dan mengimplementasikan pemindai
+keamanan jaringan rumah berbasis Python bernama HomeGuard sebagai jembatan
+tersebut. HomeGuard mengintegrasikan \textit{network discovery}, \textit{port
+scanning}, \textit{service detection}, klasifikasi perangkat, pemeriksaan
+TLS/HTTPS, pemeriksaan kredensial bawaan (\textit{opt-in}), dan pemetaan
+kerentanan berbasis OWASP IoT Top 10, dilengkapi pelaporan JSON/PDF dan
+rekomendasi mitigasi berbahasa Indonesia. Metode yang digunakan adalah
+\textit{Research and Development} dengan pendekatan \textit{prototyping}
+dalam paradigma \textit{design science research}. Pengujian berjenjang tiga
+lapis dilaksanakan: pengujian unit (36/36 lulus dari 6 modul), pengujian
+fungsional \textit{localhost} dengan layanan IoT tiruan, dan pengujian lab
+virtual (5 VM, subnet \texttt{192.168.56.0/24}). Hasil menunjukkan
+F1-\textit{score} deteksi port 0,8780 (\textit{recall} 0,9474), waktu
+pemindaian rata-rata 3,96 detik per \textit{host} ($\sigma{=}0{,}04$ detik),
+dan konsumsi sumber daya ringan (CPU 4,13\%, RAM 36,56 MB). Seluruh kode
+sumber, lingkungan lab reproducible, dan skrip pengukuran tersedia terbuka
+di \url{https://github.com/gerrard046/HomeGuard}.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -881,7 +873,7 @@ seluruhnya lulus (\textit{36 passed in 1.23s}).}
 \subsection{Pengujian Fungsional --- CLI dan Skrip Layanan Tiruan}
 
 Lapisan kedua memvalidasi alur \textit{end-to-end} secara terkendali
-menggunakan \texttt{demo\_server.py} yang menyalakan tiga layanan IoT
+menggunakan \texttt{demo\_lokal.py} yang menyalakan tiga layanan IoT
 tiruan pada \texttt{127.0.0.1}: Telnet pada port 2323, HTTP dengan banner
 komponen usang (\texttt{lighttpd/1.4.35}) pada port 8080, dan RTSP pada
 port 8554. Skenario ini merepresentasikan profil port kamera IP dan
@@ -983,6 +975,27 @@ IoT berhasil ditemukan (FN~=~0) dengan satu \textit{false positive} berupa
 F1-\textit{score} keseluruhan mencapai 0,8780 dengan \textit{recall}
 0,9474, menunjukkan bahwa hampir seluruh port berisiko berhasil
 diidentifikasi.
+
+Analisis kesalahan klasifikasi memberikan wawasan penting tentang
+karakteristik operasional pemindai. Empat \textit{false positive} pada
+tingkat port bersumber dari dua mekanisme: (a)~\textit{host} kontrol yang
+sesungguhnya tidak berperan sebagai perangkat IoT namun tetap merespons
+\textit{probe} TCP pada layanan sistem yang aktif, sehingga tercatat
+sebagai temuan; dan (b)~\textit{transient response} pada port bernomor
+tinggi akibat kondisi balapan (\textit{race condition}) singkat antara
+\textit{connect} dan \textit{close} pada tumpukan TCP virtual. Adapun satu
+\textit{false negative} (perangkat Smart TV) terjadi pada port yang
+sesekali gagal merespons dalam batas \textit{timeout} 0,5~detik akibat
+antrean koneksi paralel pada VM bersumber daya terbatas ---
+mengindikasikan adanya kompromi antara kecepatan pemindaian dan
+kelengkapan deteksi. Nilai \textit{recall} yang tinggi (0,9474)
+menunjukkan bahwa kompromi ini condong ke arah minimisasi \textit{false
+negative}, yang tepat untuk konteks keamanan karena kegagalan mendeteksi
+port berisiko (\textit{miss}) lebih berbahaya daripada peringatan
+berlebih (\textit{false alarm}) yang mudah diverifikasi pengguna.
+Peningkatan \textit{timeout} secara adaptif berdasarkan kondisi jaringan
+merupakan arah perbaikan yang dapat menekan \textit{false negative} lebih
+lanjut.
 
 \subsubsection{Kinerja Waktu Pemindaian}
 
@@ -1088,7 +1101,7 @@ spesifikasi minimal tanpa beban yang berarti.
 
 Hasil pengujian tiga lapisan menunjukkan bahwa HomeGuard mampu
 memenuhi tujuan rancangannya secara konsisten. Pada lapisan fungsional
-(CLI + \texttt{demo\_server.py}), seluruh tiga layanan tiruan --- Telnet,
+(CLI + \texttt{demo\_lokal.py}), seluruh tiga layanan tiruan --- Telnet,
 HTTP usang, dan RTSP --- terdeteksi dengan pemetaan OWASP yang tepat
 (\textit{3/3 match}), mekanisme eskalasi \textit{severity} akibat komponen
 usang berfungsi sesuai rancangan, dan skor risiko \textit{host} dihitung
@@ -1178,7 +1191,7 @@ Pengujian dilaksanakan dalam tiga lapisan:
 \textbf{(1)}~\textit{pengujian unit} (36/36 lulus, \texttt{pytest})
 memverifikasi kebenaran logika modul secara terisolasi;
 \textbf{(2)}~\textit{pengujian fungsional} via CLI dan
-\texttt{demo\_server.py} pada \texttt{127.0.0.1} memvalidasi alur
+\texttt{demo\_lokal.py} pada \texttt{127.0.0.1} memvalidasi alur
 \textit{end-to-end} --- ketiga layanan (Telnet, HTTP usang, RTSP)
 terdeteksi dengan pemetaan OWASP yang benar (\textit{3/3 match}) dan
 skor \textit{host} dihitung tepat (99/100);
@@ -1191,23 +1204,35 @@ detik), dan konsumsi sumber daya ringan (CPU 4,13\%, RAM 36,56~MB).
 Dengan demikian, aplikasi mampu mengidentifikasi kerentanan perangkat IoT
 dan memberikan rekomendasi mitigasi \textit{actionable} dalam Bahasa
 Indonesia, didukung pelaporan JSON dan PDF serta CI otomatis via GitHub
-Actions. Seluruh kode sumber, kasus uji, dan dokumentasi HomeGuard
-tersedia secara terbuka pada repositori GitHub:
-\url{https://github.com/gerrard046/HomeGuard}~\cite{homeguard2026}.
+Actions. Guna menjamin reproduksibilitas --- kriteria kualitas utama
+artefak \textit{design science} --- seluruh kode sumber, kasus uji,
+konfigurasi lingkungan lab virtual (\textit{ground truth} port per
+perangkat), serta skrip pengukuran yang menghasilkan setiap tabel dan
+gambar hasil (metrik deteksi, waktu pemindaian, konsumsi sumber daya, dan
+\textit{benchmark} terhadap Nmap) tersedia secara terbuka pada repositori
+GitHub: \url{https://github.com/gerrard046/HomeGuard}~\cite{homeguard2026}.
 
 \subsection{Saran}
 
 Pengembangan lanjutan yang disarankan meliputi:
 (1)~validasi pada perangkat IoT fisik nyata di jaringan rumah domestik
 aktual untuk menguji generalisasi hasil lab virtual;
-(2)~korelasi versi komponen dengan CVE/NVD secara \textit{real-time}
+(2)~pengujian usability terstruktur (mis. \textit{System Usability Scale})
+terhadap responden non-teknis untuk memvalidasi secara empiris klaim
+keramahan bagi pengguna awam;
+(3)~\textit{benchmark} kuantitatif terhadap perkakas mapan (Nmap, Nessus)
+pada topologi identik sebagai \textit{baseline} pembanding presisi dan
+kinerja;
+(4)~korelasi versi komponen dengan CVE/NVD secara \textit{real-time}
 untuk meningkatkan presisi deteksi komponen usang (I5);
-(3)~pemutakhiran basis data OUI IEEE secara lengkap;
-(4)~penambahan dukungan deteksi protokol IoT non-TCP (Zigbee, Z-Wave,
+(5)~pemutakhiran basis data OUI IEEE secara lengkap;
+(6)~penambahan dukungan deteksi protokol IoT non-TCP (Zigbee, Z-Wave,
 BLE); dan
-(5)~pengayaan basis aturan klasifikasi perangkat dengan teknik
+(7)~pengayaan basis aturan klasifikasi perangkat dengan teknik
 \textit{machine learning} ringan untuk meningkatkan akurasi
-\textit{fingerprinting}.
+\textit{fingerprinting}. Kerangka pengujian untuk butir (2) dan (3) telah
+disediakan pada repositori sehingga tinggal dijalankan pada lingkungan
+yang sesuai.
 
 % =========================================================
 \begin{thebibliography}{00}

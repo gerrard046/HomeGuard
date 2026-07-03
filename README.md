@@ -423,12 +423,40 @@ HomeGuard/
 │       ├── iot_ports.py        # katalog port IoT
 │       ├── owasp_iot.py        # OWASP IoT Top 10 2018
 │       └── oui.py              # lookup vendor OUI (seed + loader DB penuh)
-├── tools/update_oui.py         # pemutakhir database OUI IEEE (opsional)
-├── paper/                      # bahan paper: diagram, flowchart, bab lanjutan
-└── tests/                      # 30 unit test (pytest)
+├── tools/                      # skrip pendukung & pengukuran (reproducible)
+│   ├── update_oui.py           # pemutakhir database OUI IEEE (opsional)
+│   ├── measure_detection.py    # metrik TP/FP/FN, precision/recall/F1
+│   ├── measure_speed.py        # kinerja waktu pemindaian (mean/std/per-host)
+│   ├── measure_resources.py    # konsumsi CPU/RAM
+│   └── benchmark_nmap.py       # benchmark HomeGuard vs Nmap (baseline)
+├── lab/                        # lingkungan lab virtual reproducible
+│   ├── ground_truth.json       # acuan port per perangkat (5 profil IoT)
+│   ├── mock_iot_device.py      # perangkat IoT tiruan (per VM)
+│   └── run_lab.py              # nyalakan seluruh lab via loopback (Linux)
+├── docs/
+│   ├── REPRODUCIBILITY.md      # peta tabel/gambar paper -> skrip
+│   └── usability_sus.md        # protokol & instrumen uji SUS
+├── CITATION.cff                # metadata sitasi
+├── .zenodo.json                # metadata arsip rilis (DOI Zenodo)
+├── paper/                      # bahan paper: diagram, flowchart, naskah LaTeX
+└── tests/                      # 36 unit test (pytest, 6 modul)
     ├── test_vulnmap.py  test_discovery.py  test_portscan.py
-    └── test_scanner.py  test_classify.py
+    └── test_scanner.py  test_classify.py  test_tlscheck.py
 ```
+
+### Reproduksibilitas hasil paper
+
+Seluruh angka hasil pada paper dapat direproduksi. Nyalakan lab lalu jalankan
+skrip pengukuran (lihat [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md)):
+
+```bash
+python lab/run_lab.py                                   # terminal 1 (Linux)
+python tools/measure_detection.py --targets loopback    # terminal 2
+python tools/benchmark_nmap.py    --targets loopback    # vs Nmap
+```
+
+> Untuk angka paper, gunakan `--targets vm` pada lab VirtualBox
+> `192.168.56.0/24`; mode `loopback` hanya untuk uji cepat pipeline.
 
 ---
 

@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "Jika Anda menggunakan perangkat lunak ini, mohon kutip sebagai berikut."
+title: "HomeGuard: Aplikasi Pemindai Keamanan Jaringan Rumah untuk Identifikasi Kerentanan Perangkat IoT"
+abstract: >-
+  HomeGuard adalah aplikasi pemindai keamanan jaringan rumah berbasis Python
+  yang mengintegrasikan network discovery, port scanning, service detection,
+  klasifikasi perangkat, pemeriksaan TLS/HTTPS, pemeriksaan kredensial bawaan
+  (opt-in), dan pemetaan kerentanan berbasis OWASP IoT Top 10, dengan pelaporan
+  JSON/PDF dan rekomendasi mitigasi berbahasa Indonesia.
+type: software
+authors:
+  - family-names: Marbun
+    given-names: Raffelino Hizkia
+    affiliation: Politeknik Siber dan Sandi Negara
+  - family-names: Ramadhan
+    given-names: Reiza Gerrard Rizki
+    affiliation: Politeknik Siber dan Sandi Negara
+repository-code: "https://github.com/gerrard046/HomeGuard"
+url: "https://github.com/gerrard046/HomeGuard"
+license: MIT
+version: "1.0.0"
+date-released: "2026-07-03"
+keywords:
+  - keamanan jaringan
+  - internet of things
+  - pemindai kerentanan
+  - smart home
+  - OWASP IoT Top 10
+  - design science
