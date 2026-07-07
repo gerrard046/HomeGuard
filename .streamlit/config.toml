@@ -1,0 +1,11 @@
+[theme]
+# Tema HomeGuard "Command Center" - dark cyber (navy + neon cyan)
+base = "dark"
+primaryColor = "#22d3ee"
+backgroundColor = "#0a0e1f"
+secondaryBackgroundColor = "#111733"
+textColor = "#e5ecf5"
+font = "sans serif"
+
+[server]
+headless = true

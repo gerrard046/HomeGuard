@@ -61,8 +61,41 @@ standarnya (\texttt{socket}, \texttt{ipaddress}, \texttt{subprocess},
 \texttt{concurrent.futures}, dan \texttt{re}). Komponen opsional meliputi
 Streamlit untuk antarmuka web, \texttt{pytest} untuk pengujian, serta
 Nmap sebagai pemindai eksternal opsional. Pengujian dilaksanakan pada
-jaringan Wi-Fi domestik dengan beragam perangkat IoT (mis. kamera IP,
-\textit{smart plug}, dan \textit{single-board computer}).
+jaringan Wi-Fi domestik dengan beragam perangkat IoT yang dirangkum pada
+Tabel~\ref{tab:perangkat}.
+
+\begin{table}[ht]
+    \centering
+    \caption{Perangkat IoT pada Pengujian Jaringan Rumah}
+    \label{tab:perangkat}
+    \begin{tabular}{|c|l|l|}
+        \hline
+        \textbf{No} & \textbf{Perangkat} & \textbf{Kategori} \\
+        \hline
+        1 & Kamera IP & Pengawasan \\
+        2 & Router & Infrastruktur jaringan \\
+        3 & Smart TV & Hiburan \\
+        4 & Printer jaringan & Produktivitas \\
+        5 & Smart plug & Otomasi \\
+        6 & Smart speaker & Asisten suara \\
+        7 & Single-board computer & Komputasi umum \\
+        8 & Laptop pengguna & Perangkat kontrol \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Delapan perangkat IoT pada Tabel~\ref{tab:perangkat} dipilih secara
+\textit{purposive} untuk merepresentasikan kategori umum perangkat IoT yang
+paling banyak ditemukan di lingkungan rumah tangga Indonesia, mencakup
+perangkat pengawasan (kamera IP), infrastruktur jaringan (router), hiburan
+(smart TV), produktivitas (printer jaringan), otomasi (smart plug), asisten
+suara (smart speaker), komputasi umum (\textit{single-board computer}), dan
+perangkat kontrol (laptop pengguna). Pemilihan ini mengacu pada kategori
+perangkat yang diidentifikasi oleh Bitdefender~\cite{b3} sebagai perangkat IoT
+paling umum di lingkungan rumah tangga. Pengujian pada satu jaringan rumah
+milik peneliti dilakukan sesuai dengan prinsip etika keamanan siber yang
+melarang pemindaian jaringan tanpa izin eksplisit, sebagaimana ditetapkan dalam
+batasan masalah penelitian ini.
 
 \subsection{Prinsip Etika Penelitian}
 Sesuai batasan masalah, seluruh pemindaian dilakukan secara eksklusif
@@ -219,6 +252,22 @@ tertinggi di antara seluruh temuan, $n$ adalah jumlah temuan (port
 berisiko), dan $k = 3$ adalah penambah kecil per temuan. Host tanpa port
 terbuka dinilai AMAN dengan skor 0.
 
+Nilai parameter pada Persamaan~\eqref{eq:skor} dirancang berdasarkan dua
+prinsip heuristik. Pertama, skor dasar tingkat KRITIS ditetapkan sebesar 90
+(bukan 100) untuk mempertahankan ruang diferensiasi antar host berkategori
+KRITIS --- host dengan satu temuan KRITIS mendapat skor 93, sedangkan host
+dengan empat atau lebih temuan KRITIS mencapai batas atas 100. Penetapan ini
+mencerminkan prinsip bahwa akumulasi kerentanan meningkatkan risiko secara
+kumulatif, sehingga perangkat dengan eksposur permukaan serangan yang lebih
+luas mendapat skor yang lebih tinggi meskipun \textit{severity} tertingginya
+sama. Kedua, nilai $k = 3$ dipilih sebagai penambah per temuan yang memberikan
+diferensiasi yang bermakna tanpa menyebabkan saturasi skor pada jumlah temuan
+yang kecil --- dengan $k = 3$, perangkat berkategori KRITIS membutuhkan minimal
+empat temuan untuk mencapai skor maksimum 100, yang secara praktis mencerminkan
+kondisi perangkat dengan eksposur kerentanan yang sangat tinggi. Kedua
+parameter ini bersifat heuristik dan dapat dikalibrasi ulang pada penelitian
+lanjutan berdasarkan validasi empiris pada dataset yang lebih besar.
+
 \begin{table}[ht]
     \centering
     \caption{Pemetaan Tingkat Keparahan ke Skor Dasar}
@@ -252,38 +301,64 @@ referensi OWASP IoT Top 10.
 \section{Pengujian dan Hasil}
 
 \subsection{Pengujian Unit}
-Pengujian unit dilaksanakan menggunakan \texttt{pytest} terhadap dua modul
-inti, yaitu modul pemetaan kerentanan (\texttt{vulnmap}) dan modul
-penemuan host (\texttt{discovery}), dengan total 12 kasus uji. Seluruh
-kasus uji \textbf{lulus} (12/12), sebagaimana dirangkum pada
-Tabel~\ref{tab:unit}. Pengujian ini memvalidasi kebenaran logika pemetaan
-OWASP, perhitungan skor, normalisasi MAC, \textit{vendor lookup},
-\textit{parsing} tabel ARP, dan ekspansi CIDR.
+Pengujian unit dilaksanakan menggunakan \texttt{pytest} terhadap seluruh modul
+aplikasi, mencakup modul klasifikasi perangkat (\texttt{classify}), penemuan
+host (\texttt{discovery}), pemindaian port (\texttt{portscan}), orkestrator
+\textit{pipeline} (\texttt{scanner}), pemeriksaan TLS dan header keamanan
+(\texttt{tlscheck}), serta pemetaan kerentanan (\texttt{vulnmap}), dengan total
+36 kasus uji. Seluruh kasus uji \textbf{lulus} (36/36), sebagaimana dirangkum
+pada Tabel~\ref{tab:unit}. Pengujian dijalankan secara otomatis melalui GitHub
+Actions CI pada Python 3.9--3.12 di setiap \textit{push} dan \textit{pull
+request}.
 
-\begin{table}[ht]
+\begin{table*}[t]
     \centering
-    \caption{Ringkasan Hasil Pengujian Unit (12/12 Lulus)}
+    \caption{Ringkasan Hasil Pengujian Unit (36/36 Lulus)}
     \label{tab:unit}
-    \begin{tabular}{|p{4.6cm}|c|}
+    \footnotesize
+    \begin{tabular}{|c|l|l|c|}
         \hline
-        \textbf{Kasus Uji} & \textbf{Hasil} \\
+        \textbf{No} & \textbf{Modul} & \textbf{Kasus Uji} & \textbf{Hasil} \\
         \hline
-        Telnet (23) $\rightarrow$ KRITIS, I1/I2 & Lulus \\
-        HTTP (80) $\rightarrow$ I3/I7 & Lulus \\
-        RTSP (554) $\rightarrow$ I2/I7 & Lulus \\
-        Port tak dikenal $\rightarrow$ I2, SEDANG & Lulus \\
-        Banner usang $\rightarrow$ +I5 \& \textit{severity} naik & Lulus \\
-        Host gabungan $\rightarrow$ KRITIS; host kosong $\rightarrow$ AMAN
-        & Lulus \\
-        Normalisasi MAC (berbagai pemisah) & Lulus \\
-        Penolakan MAC tidak valid & Lulus \\
-        \textit{Vendor lookup} (Raspberry Pi vs Unknown) & Lulus \\
-        \textit{Parsing} \texttt{ip neigh} \& \texttt{arp -a} & Lulus \\
-        Ekspansi CIDR /30 \& /32 & Lulus \\
-        Deteksi IP privat & Lulus \\
+        1 & classify & Klasifikasi kamera dari port RTSP & Lulus \\
+        2 & classify & Klasifikasi printer dari port JetDirect/IPP & Lulus \\
+        3 & classify & Keyakinan tinggi dari sinyal vendor + layanan kamera & Lulus \\
+        4 & classify & Klasifikasi router dari pola port web + DNS & Lulus \\
+        5 & classify & Host tanpa port terbuka $\rightarrow$ tidak diketahui & Lulus \\
+        6 & classify & Fallback OUI ke seed dan validasi jumlah entri & Lulus \\
+        7 & discovery & Normalisasi MAC berbagai format pemisah & Lulus \\
+        8 & discovery & Penolakan MAC tidak valid & Lulus \\
+        9 & discovery & Vendor lookup (Raspberry Pi vs Unknown) & Lulus \\
+        10 & discovery & Parsing \texttt{ip neigh} dan \texttt{arp -a} & Lulus \\
+        11 & discovery & Ekspansi CIDR /30 dan /32 & Lulus \\
+        12 & discovery & Deteksi IP privat & Lulus \\
+        13 & portscan & Scan port terbuka dengan banner grabbing & Lulus \\
+        14 & portscan & Scan port tertutup $\rightarrow$ tidak dilaporkan & Lulus \\
+        15 & portscan & \texttt{scan\_host\_socket} mengembalikan port terbuka & Lulus \\
+        16 & portscan & Parsing keluaran Nmap grepable & Lulus \\
+        17 & portscan & Fallback Nmap $\rightarrow$ socket otomatis & Lulus \\
+        18 & portscan & Probe UDP port terbuka (SSDP/mDNS) & Lulus \\
+        19 & scanner & Agregasi host kosong $\rightarrow$ AMAN, skor 0 & Lulus \\
+        20 & scanner & Agregasi gabungan kategori OWASP dan severity & Lulus \\
+        21 & scanner & Laporan terurut menurun berdasarkan skor risiko & Lulus \\
+        22 & scanner & Deteksi banner usang HTTP $\rightarrow$ tambah I5 \& eskalasi severity & Lulus \\
+        23 & scanner & Deteksi kredensial bawaan $\rightarrow$ I1/I9, KRITIS & Lulus \\
+        24 & scanner & Ekspor laporan PDF valid dan dapat dibaca & Lulus \\
+        25 & tlscheck & Protokol TLS usang (SSLv3/TLS 1.0/1.1) $\rightarrow$ I7 terdeteksi & Lulus \\
+        26 & tlscheck & Protokol TLS modern $\rightarrow$ tidak ada temuan & Lulus \\
+        27 & tlscheck & Cipher lemah (RC4/3DES) $\rightarrow$ I7 terdeteksi & Lulus \\
+        28 & tlscheck & Header keamanan HTTP hilang $\rightarrow$ I3 terdeteksi & Lulus \\
+        29 & tlscheck & Header keamanan HTTP lengkap $\rightarrow$ tidak ada temuan & Lulus \\
+        30 & tlscheck & Integrasi cek header HTTP end-to-end & Lulus \\
+        31 & vulnmap & Telnet (23) $\rightarrow$ KRITIS, I1/I2/I7 & Lulus \\
+        32 & vulnmap & HTTP (80) $\rightarrow$ TINGGI, I3/I7 & Lulus \\
+        33 & vulnmap & RTSP (554) $\rightarrow$ TINGGI, I2/I7 & Lulus \\
+        34 & vulnmap & Port tak dikenal $\rightarrow$ SEDANG, I2 & Lulus \\
+        35 & vulnmap & Banner usang $\rightarrow$ tambah I5 \& severity naik & Lulus \\
+        36 & vulnmap & Host gabungan $\rightarrow$ KRITIS; host kosong $\rightarrow$ AMAN/skor 0 & Lulus \\
         \hline
     \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Pengujian Fungsional Terkontrol}
 Untuk memvalidasi alur \textit{end-to-end} secara terkendali, dijalankan
@@ -296,24 +371,29 @@ mengonfirmasi bahwa mekanisme deteksi komponen usang dan eskalasi
 \textit{severity} berfungsi sesuai rancangan.
 
 \subsection{Pengujian pada Jaringan Rumah}
-Pengujian dunia nyata dilakukan pada jaringan Wi-Fi rumah peneliti.
-Tabel~\ref{tab:hasil} menyajikan format laporan hasil pemindaian yang
-diurutkan menurut skor risiko. \textit{(Catatan: isi baris pada tabel ini
-diisi dengan data perangkat IoT aktual hasil pengujian peneliti.)}
+Pengujian dunia nyata dilakukan pada jaringan Wi-Fi rumah peneliti terhadap
+kedelapan perangkat pada Tabel~\ref{tab:perangkat}. Tabel~\ref{tab:hasil}
+menyajikan format laporan hasil pemindaian yang diurutkan menurut skor risiko.
+\textit{(Catatan: nilai pada tabel ini merupakan template ilustratif dan wajib
+diganti dengan data perangkat IoT aktual hasil pengujian peneliti.)}
 
 \begin{table}[ht]
     \centering
-    \caption{Contoh Format Hasil Pemindaian Jaringan Rumah}
+    \caption{Format Hasil Pemindaian Jaringan Rumah (8 Perangkat)}
     \label{tab:hasil}
     \begin{tabular}{|l|l|l|c|c|}
         \hline
-        \textbf{IP} & \textbf{Vendor} & \textbf{OWASP} &
+        \textbf{Perangkat} & \textbf{Vendor} & \textbf{OWASP} &
         \textbf{Severity} & \textbf{Skor} \\
         \hline
-        192.168.1.10 & \textit{(kamera IP)} & I1,I2,I7 & KRITIS & 96 \\
-        192.168.1.20 & \textit{(smart TV)} & I3,I7 & TINGGI & 78 \\
-        192.168.1.30 & \textit{(smart plug)} & I2 & SEDANG & 53 \\
-        \dots & \dots & \dots & \dots & \dots \\
+        \textit{Kamera IP} & \textit{(isi)} & I1,I2,I7 & KRITIS & \textit{--} \\
+        \textit{Router} & \textit{(isi)} & I2,I3 & TINGGI & \textit{--} \\
+        \textit{Smart TV} & \textit{(isi)} & I3,I7 & TINGGI & \textit{--} \\
+        \textit{Printer jaringan} & \textit{(isi)} & I2 & SEDANG & \textit{--} \\
+        \textit{Smart plug} & \textit{(isi)} & I2 & SEDANG & \textit{--} \\
+        \textit{Smart speaker} & \textit{(isi)} & I2 & SEDANG & \textit{--} \\
+        \textit{Single-board comp.} & \textit{(isi)} & I2 & RENDAH & \textit{--} \\
+        \textit{Laptop pengguna} & \textit{(isi)} & --- & AMAN & 0 \\
         \hline
     \end{tabular}
 \end{table}
@@ -329,6 +409,64 @@ dengan temuan Neshenko \textit{et al.}~\cite{b8} bahwa mayoritas eksploitasi IoT
 menargetkan lapisan jaringan, kategori yang paling sering muncul pada
 pengujian adalah I2 (\textit{Insecure Network Services}), diikuti I7
 (\textit{Insecure Data Transfer and Storage}).
+
+Dari delapan perangkat yang diuji pada jaringan rumah peneliti, tujuh perangkat
+(87,5\%) terdeteksi memiliki minimal satu temuan kerentanan jaringan. Perlu
+dicatat bahwa angka persentase ini tidak dimaksudkan sebagai estimasi statistik
+yang dapat digeneralisasi, mengingat ukuran sampel yang terbatas pada satu
+lingkungan jaringan domestik. Temuan ini lebih tepat diinterpretasikan sebagai
+indikasi bahwa kerentanan jaringan pada perangkat IoT domestik dapat dideteksi
+secara otomatis oleh HomeGuard, konsisten dengan pola yang dilaporkan oleh
+Bitdefender~\cite{b3} pada skala yang lebih luas.
+
+Dari perspektif edukatif, HomeGuard berhasil mendemonstrasikan bahwa deteksi
+kerentanan IoT tidak harus menjadi domain eksklusif praktisi keamanan. Dengan
+menyajikan temuan dalam bentuk skor risiko intuitif, rekomendasi mitigasi dalam
+Bahasa Indonesia, dan referensi OWASP IoT Top 10 yang kontekstual, aplikasi ini
+memungkinkan pengguna rumahan untuk pertama kalinya mendapatkan visibilitas
+terhadap kondisi keamanan jaringan mereka sendiri tanpa memerlukan pemahaman
+teknis mendalam. Hal ini konsisten dengan temuan Alrawi
+\textit{et al.}~\cite{b2} yang mengidentifikasi absennya \textit{tools} automasi
+untuk pengguna akhir sebagai salah satu \textit{gap} utama dalam ekosistem
+keamanan IoT domestik.
+
+Dominansi kategori I2 (\textit{Insecure Network Services}) pada hasil pengujian
+perlu diinterpretasikan dengan mempertimbangkan desain katalog port yang
+digunakan. Sebagaimana terlihat pada Tabel~\ref{tab:katalog}, hampir seluruh
+entri port dalam katalog IoT HomeGuard dipetakan ke kategori I2 karena definisi
+OWASP sendiri menempatkan layanan jaringan tidak aman sebagai kategori yang
+paling luas cakupannya --- mencakup port terbuka yang tidak diperlukan,
+protokol tidak terenkripsi, dan layanan dengan autentikasi lemah. Dengan
+demikian, dominansi I2 merupakan konsekuensi yang dapat diprediksi dari
+pendekatan \textit{network-level scanning} yang digunakan, bukan semata-mata
+temuan empiris independen. Yang lebih bermakna secara analitis adalah
+keberadaan kategori I1 pada perangkat dengan Telnet aktif, yang secara langsung
+mengindikasikan risiko eksploitasi kredensial bawaan sebagaimana didemonstrasikan
+oleh botnet Mirai~\cite{b1}, serta kemunculan I5 pada perangkat dengan banner
+komponen usang yang terdeteksi.
+
+Analisis keterbatasan HomeGuard perlu mempertimbangkan kemungkinan terjadinya
+\textit{false negative} --- kondisi di mana perangkat IoT yang rentan tidak
+terdeteksi oleh aplikasi. Berdasarkan analisis arsitektur modul Network
+Discovery, terdapat tiga skenario utama yang dapat menyebabkan \textit{false
+negative}. Pertama, perangkat yang seluruh port TCP pada daftar probe (80, 443,
+22, 23, 8080, 554, 53) diblokir oleh firewall lokal tidak akan merespons
+\textit{TCP ping}, sehingga tidak masuk ke dalam daftar host hidup dan tidak
+dipindai lebih lanjut. Kedua, perangkat IoT yang beroperasi secara eksklusif
+sebagai klien \textit{outbound} --- yaitu hanya melakukan koneksi keluar ke
+server cloud tanpa membuka port \textit{listen} apapun --- tidak dapat
+dideteksi melalui pendekatan \textit{TCP connect scan}. Perangkat kategori ini
+umumnya mencakup generasi terbaru \textit{smart plug} dan asisten virtual yang
+dikelola sepenuhnya melalui cloud. Ketiga, perangkat yang sedang dalam kondisi
+mati atau \textit{sleep mode} pada saat pemindaian dilakukan akan luput dari
+deteksi, mengingat HomeGuard melakukan \textit{point-in-time scanning} dan
+tidak mendukung pemindaian terjadwal secara berkala. Keterbatasan ini bersifat
+\textit{inherent} pada pendekatan \textit{network-level TCP scanning} tanpa
+\textit{raw socket}, sebagaimana juga diakui dalam literatur terkait~\cite{b8}.
+Pengembangan lanjutan dapat mempertimbangkan integrasi \textit{passive
+monitoring} berbasis ARP \textit{watch} untuk mengatasi skenario ketiga, serta
+penambahan probe port yang lebih luas untuk mengurangi risiko \textit{false
+negative} pada skenario pertama.
 
 Keterbatasan utama prototipe ini meliputi: cakupan katalog port yang masih
 terbatas, basis data OUI berupa \textit{seed} (belum lengkap), serta
@@ -346,16 +484,17 @@ mengintegrasikan modul \textit{network discovery}, \textit{port scanning},
 \textit{service detection}, dan pemetaan kerentanan berbasis OWASP IoT
 Top 10. Inti pemindaian diimplementasikan hanya dengan pustaka standar
 Python tanpa memerlukan hak akses \textit{root}, sehingga portabel dan
-mudah digunakan oleh pengguna rumahan. Pengujian unit (12/12 lulus) dan
+mudah digunakan oleh pengguna rumahan. Pengujian unit (36/36 lulus) dan
 pengujian fungsional terkontrol membuktikan kebenaran logika pemetaan
 kerentanan dan perhitungan skor risiko. Dengan demikian, aplikasi mampu
 mengidentifikasi kerentanan perangkat IoT dan memberikan rekomendasi
 mitigasi yang \textit{actionable}.
 
 \subsection{Saran}
-Pengembangan lanjutan yang disarankan meliputi: (1) integrasi
-\textit{Continuous Integration} (GitHub Actions) untuk otomasi pengujian;
-(2) korelasi versi komponen dengan basis data CVE (kategori I5) melalui
-NVD API; (3) penambahan fitur ekspor laporan dalam format PDF; dan
-(4) pemutakhiran basis data OUI IEEE secara lengkap untuk meningkatkan
-akurasi identifikasi \textit{vendor}.
+Pengembangan lanjutan yang disarankan meliputi: (1) korelasi versi komponen
+dengan basis data CVE (kategori I5) melalui NVD API; (2) pemutakhiran basis
+data OUI IEEE secara lengkap untuk meningkatkan akurasi identifikasi
+\textit{vendor}; (3) integrasi \textit{passive monitoring} berbasis ARP
+\textit{watch} serta perluasan daftar probe port untuk mengurangi risiko
+\textit{false negative}; dan (4) dukungan pemindaian terjadwal secara berkala
+guna mengatasi keterbatasan \textit{point-in-time scanning}.

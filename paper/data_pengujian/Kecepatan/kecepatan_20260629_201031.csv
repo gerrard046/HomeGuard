@@ -1,0 +1,7 @@
+percobaan,warm_up,jumlah_host,waktu_discovery,waktu_scan,waktu_total,waktu_per_host
+warm-up,True,6,17.63,82.14,99.77,16.63
+1,False,6,17.63,6.13,23.75,3.96
+2,False,6,17.62,6.12,23.74,3.96
+3,False,6,17.62,6.13,23.75,3.96
+4,False,6,17.62,6.13,23.75,3.96
+5,False,6,17.72,6.12,23.84,3.97
